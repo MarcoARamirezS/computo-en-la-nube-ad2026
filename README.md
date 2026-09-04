@@ -41,10 +41,6 @@ Repositorio de prácticas para trabajar con **Nuxt 4**, **Vue 3**, **TypeScript*
 
 ```text
 01. Instalación y configuración
-          ↓
-02. Componentes, Props y Eventos
-          ↓
-03. Ejercicio práctico
 ```
 
 ---

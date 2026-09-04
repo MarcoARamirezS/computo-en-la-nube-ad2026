@@ -1487,3 +1487,6 @@ Componentes + Props + Eventos
 ```
 
 Esto permite que los problemas de instalación y configuración se resuelvan antes de trabajar con la comunicación entre componentes.
+
+
+[← Regresar al índice](../README.md)

@@ -18,3 +18,5 @@ Proyecto evolutivo con Nuxt 4, Tailwind CSS 4, Pinia, Node.js 24 LTS, Express 5,
 ```text
 Foundation → Componentes → REST → Firestore → Auth → Check-in → Checkout → Cloudinary → PDF → Testing
 ```
+
+[← Regresar al índice](./../../README.md)

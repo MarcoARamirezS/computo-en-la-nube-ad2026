@@ -9,6 +9,7 @@ Repositorio de prácticas para trabajar con **Nuxt 4**, **Vue 3**, **TypeScript*
 ### 01. Preparación del proyecto
 
 [Instalación, configuración de Nuxt 4 y Tailwind CSS](./docs/01-preparacion-nuxt4-eventos.md)
+[Parking Project](./docs/Parking%20Project/README.md)
 
 
 ---
@@ -20,6 +21,7 @@ Repositorio de prácticas para trabajar con **Nuxt 4**, **Vue 3**, **TypeScript*
 ├── README.md
 └── docs/
     ├── 01-preparacion-nuxt4-eventos.md
+    ├── 02-parking-project.md
 ```
 
 ---

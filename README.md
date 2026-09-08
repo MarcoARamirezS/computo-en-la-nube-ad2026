@@ -10,7 +10,7 @@ Repositorio de prácticas y proyectos evolutivos desarrollados con **Nuxt 4**, *
 
 Introducción al desarrollo con Nuxt 4 utilizando componentes Vue, propiedades, eventos y Tailwind CSS.
 
-📖 [Ir a la práctica](./docs/01-nuxt4-eventos/README.md)
+📖 [Ir a la práctica](./docs/01-preparacion-nuxt4-eventos.md)
 
 ---
 

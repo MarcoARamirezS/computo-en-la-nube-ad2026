@@ -5,13 +5,13 @@ Proyecto evolutivo con Nuxt 4, Tailwind CSS 4, Pinia, Node.js 24 LTS, Express 5,
 ## Sesiones
 
 1. [Foundation: monorepo + Nuxt + Express](./01-foundation-monorepo-nuxt-express.md)
-2. [Frontend: dashboard y componentes](./02-frontend-parking-dashboard.md)
-3. [Firestore: API REST de cajones](./03-firestore-parking-spaces.md)
-4. [Autenticación: bcrypt + JWT](./04-auth-bcrypt-jwt.md)
-5. [Check-in: vehículos y sesiones](./05-checkin-parking-session.md)
-6. [Checkout: tarifa y liberación](./06-checkout-rates.md)
-7. [Cloudinary: fotografías](./07-cloudinary-images.md)
-8. [PDF + pruebas finales](./08-pdf-testing-final.md)
+2. [Frontend: dashboard y componentes - PENDIENTE](./02-frontend-parking-dashboard.md)
+3. [Firestore: API REST de cajones - PENDIENTE](./03-firestore-parking-spaces.md)
+4. [Autenticación: bcrypt + JWT - PENDIENTE](./04-auth-bcrypt-jwt.md)
+5. [Check-in: vehículos y sesiones - PENDIENTE](./05-checkin-parking-session.md)
+6. [Checkout: tarifa y liberación - PENDIENTE](./06-checkout-rates.md)
+7. [Cloudinary: fotografías - PENDIENTE](./07-cloudinary-images.md)
+8. [PDF + pruebas finales - PENDIENTE](./08-pdf-testing-final.md)
 
 ## Progresión
 

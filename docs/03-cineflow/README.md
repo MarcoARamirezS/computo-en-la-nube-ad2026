@@ -1,68 +1,53 @@
-# CineFlow — Guía del proyecto
+# CineFlow — Guía sencilla paso a paso (v2)
 
-<!-- navigation:start -->
+[🏠 Índice general](../../README.md) · [← Parking Control](../02-parking-control/README.md)
 
-[← Anterior](../02-parking-control/README.md) | [Índice del proyecto](./README.md) | [Siguiente →](./00-leeme.md)
+**Empieza por un solo documento y sigue Siguiente.** Cada capítulo tiene rutas exactas, archivos completos, comandos y una comprobación visible. No necesitas pedir a otra IA que complete código faltante.
 
-[🏠 Índice general](../../README.md)
+**[EMPEZAR AQUÍ →](./00-leeme.md)**
 
-<!-- navigation:end -->
+## Ruta principal
 
-Monorepo con **React, TypeScript y Tailwind CSS**, backend completo con **Node.js/Express**, **Firebase Authentication**, **Firestore** y catálogo **TMDB**. Usuarios, perfiles, favoritos e historial de tráilers sincronizados.
+Los números de archivo se conservan para no romper enlaces antiguos. **El orden correcto es esta tabla y los botones Anterior/Siguiente**, no ordenar por nombre. Configuramos Firebase cuando ya se ve el catálogo y está por comenzar la etapa de usuarios.
 
-Este proyecto contiene instrucciones de implementación. El backend se construye en un bloque completo y el frontend evoluciona en ocho etapas; los documentos no son el código ejecutable de la aplicación.
-
-**[Comenzar la guía →](./00-leeme.md)**
-
-## Cómo recorrer la guía
-
-Los enlaces **Anterior** y **Siguiente** recorren los documentos en el orden de la tabla. Están disponibles arriba y abajo. **Índice del proyecto** regresa aquí e **Índice general** abre la portada del repositorio. En el último documento, Siguiente cierra el recorrido volviendo a este índice.
-
-Primero se preparan arquitectura, entorno y contratos; después se implementa y verifica B0 con el modelo Firestore. Las etapas del frontend consumen ese backend. Los documentos de pruebas y fuentes pueden consultarse desde el inicio como referencia.
-
-## Preparación y backend completo
-
-| Orden | Documento |
+| Paso | Documento |
 |---|---|
-| 00 | [CineFlow — Guía de construcción evolutiva](./00-leeme.md) |
-| 01 | [01 — Arquitectura y alcance](./01-arquitectura-y-alcance.md) |
-| 02 | [02 — Instalación y primera prueba](./02-instalacion-monorepo.md) |
-| 03 | [03 — Firebase, TMDB y variables](./03-firebase-tmdb-y-variables.md) |
-| 04 | [04 — Contrato estable API v1](./04-contrato-api.md) |
-| 05 | [05 — Backend completo: una sola entrega B0](./05-backend-completo.md) |
-| 06 | [06 — Modelo de Firestore](./06-firestore-modelo-reglas.md) |
-| 07 | [07 — Sistema de diseño y experiencia](./07-ui-ux.md) |
-| 08 | [08 — Matriz maestra del frontend](./08-ruta-frontend.md) |
+| 1 | [Empieza aquí — CineFlow sencillo, versión 2](./00-leeme.md) |
+| 2 | [1. Entender el proyecto en cinco minutos](./01-arquitectura-y-alcance.md) |
+| 3 | [2. Instalar y ver la primera pantalla](./02-instalacion-monorepo.md) |
+| 4 | [3. Copiar el backend completo una sola vez](./05-backend-completo.md) |
+| 5 | [Frontend 1 — Crear la interfaz](./09-frontend-etapa-01.md) |
+| 6 | [Frontend 2 — Conectar catálogo y navegación](./10-frontend-etapa-02.md) |
+| 7 | [Frontend 3 — Abrir la ficha de un título](./11-frontend-etapa-03.md) |
+| 8 | [7. Conectar los servicios reales: TMDB y Firebase](./03-firebase-tmdb-y-variables.md) |
+| 9 | [Frontend 4 — Crear usuarios e iniciar sesión](./12-frontend-etapa-04.md) |
+| 10 | [Frontend 5 — Crear y elegir perfiles](./13-frontend-etapa-05.md) |
+| 11 | [Frontend 6 — Guardar favoritas en la nube](./14-frontend-etapa-06.md) |
+| 12 | [Frontend 7 — Reproducir y guardar historial](./15-frontend-etapa-07.md) |
+| 13 | [Frontend 8 — Verificar la aplicación completa](./16-frontend-etapa-08.md) |
+| 14 | [Consulta — Pruebas, errores frecuentes y publicación](./17-pruebas-y-despliegue.md) |
 
-## Frontend evolutivo: ocho etapas
+## Consultas opcionales
 
-| Etapa | Documento |
-|---|---|
-| 1 | [Etapa 1 — Base React, Tailwind y UI](./09-frontend-etapa-01.md) |
-| 2 | [Etapa 2 — Router y catálogo conectado](./10-frontend-etapa-02.md) |
-| 3 | [Etapa 3 — Búsqueda, filtros y detalle](./11-frontend-etapa-03.md) |
-| 4 | [Etapa 4 — Usuarios y autenticación](./12-frontend-etapa-04.md) |
-| 5 | [Etapa 5 — Perfiles y estado aislado](./13-frontend-etapa-05.md) |
-| 6 | [Etapa 6 — Favoritos sincronizados](./14-frontend-etapa-06.md) |
-| 7 | [Etapa 7 — Tráilers, historial y reanudación](./15-frontend-etapa-07.md) |
-| 8 | [Etapa 8 — Calidad, integración y entrega](./16-frontend-etapa-08.md) |
+No bloquean el camino principal; ábrelas cuando necesites una explicación.
 
-## Validación, implementación y referencias
+- [Consulta — Rutas que ya incluye el backend](./04-contrato-api.md)
+- [Consulta — Qué guarda Firestore en la versión sencilla](./06-firestore-modelo-reglas.md)
+- [Consulta — Diseño visual explicado sin herramientas extra](./07-ui-ux.md)
+- [Consulta — Mapa de las ocho etapas frontend](./08-ruta-frontend.md)
+- [Consulta — Cómo trabajar, actualizar y guardar avances](./18-instrucciones-implementacion.md)
+- [Consulta — Fuentes oficiales y glosario](./19-fuentes.md)
 
-- [17 — Verificación, corrida completa y despliegue](./17-pruebas-y-despliegue.md)
-- [18 — Instrucciones de implementación para editor o asistente](./18-instrucciones-implementacion.md)
-- [19 — Fuentes oficiales y decisiones](./19-fuentes.md)
+## Código de referencia incluido
 
-## Alcance de reproducción
+[Ver instrucciones del proyecto terminado](./codigo-referencia/README.md). Contiene archivos reales, lockfile y pruebas. Puedes compararlo con tus avances o abrirlo como aplicación independiente. No hace falta ejecutarlo para leer la guía.
 
-El catálogo permite descubrir películas y series; la reproducción integrada corresponde a tráilers disponibles en YouTube. El historial registra esos tráilers, no películas completas.
+## Alcance
 
----
+Backend completo en un bloque; frontend en ocho etapas; cuentas, hasta cinco perfiles, 50 favoritas y 50 tráilers recientes por perfil. Firebase se configura desde Console; TMDB entrega catálogo y YouTube reproduce tráilers. **No es streaming de películas completas.**
 
-<!-- navigation:start -->
+## Diferencias frente a v1
 
-[← Anterior](../02-parking-control/README.md) | [Índice del proyecto](./README.md) | [Siguiente →](./00-leeme.md)
+Ahora se incluyen archivos completos y comprobaciones. Se quitaron requisitos de emuladores, Java, contracts y varias librerías avanzadas del arranque. La versión sencilla usa `/api` y `cineflowUsers`. No es un parche compatible para una aplicación v1 ya programada; si ya empezaste código, usa una nueva carpeta y conserva tu trabajo anterior.
 
-[🏠 Índice general](../../README.md)
-
-<!-- navigation:end -->
+[Comenzar →](./00-leeme.md) · [Índice general](../../README.md)

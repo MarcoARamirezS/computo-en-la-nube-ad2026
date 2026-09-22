@@ -1,0 +1,158 @@
+@import "tailwindcss";
+:root {
+  font-family: system-ui, sans-serif;
+  color: #f8fafc;
+  background: #0b0f19;
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+}
+* {
+  box-sizing: border-box;
+}
+a {
+  color: inherit;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button,
+a,
+input,
+select {
+  outline-offset: 4px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #fde047;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+input,
+select {
+  border: 1px solid #64748b;
+  background: #161d2b;
+  color: white;
+  padding: 0.75rem;
+  border-radius: 0.6rem;
+  max-width: 100%;
+}
+label {
+  display: grid;
+  gap: 0.4rem;
+}
+nav {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  border: 1px solid #64748b;
+  border-radius: 0.7rem;
+  background: #172033;
+  color: white;
+  text-decoration: none;
+  min-height: 44px;
+}
+.primary {
+  background: #fb7185;
+  color: #160811;
+  border: 0;
+  font-weight: 700;
+}
+.wrap {
+  max-width: 1180px;
+  margin: auto;
+  padding: 1.25rem;
+}
+.panel {
+  background: #161d2b;
+  border: 1px solid #334155;
+  border-radius: 1rem;
+  padding: 1.25rem;
+}
+.grid-media {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+.poster {
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #1e3a5f, #74284e);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+.poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.error {
+  padding: 1rem;
+  border: 1px solid #fb7185;
+  background: #421e2b;
+  border-radius: 0.7rem;
+}
+.muted {
+  color: #cbd5e1;
+}
+.skip {
+  position: absolute;
+  top: -100px;
+}
+.skip:focus {
+  top: 0;
+  z-index: 5;
+  background: #0b0f19;
+  padding: 1rem;
+}
+h1 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+}
+h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+p {
+  margin: 0.8rem 0;
+}
+main {
+  min-height: 65vh;
+}
+form {
+  display: grid;
+  gap: 1rem;
+}
+button + button {
+  margin-left: 0.5rem;
+}
+iframe {
+  width: 100%;
+  height: clamp(220px, 50vw, 520px);
+  border: 0;
+}
+progress {
+  width: 100%;
+  accent-color: #fb7185;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,67 +1,60 @@
-# CineFlow — Guía de construcción evolutiva
+# Empieza aquí — CineFlow sencillo, versión 2
 
 <!-- navigation:start -->
 
-[← Anterior](./README.md) | [Índice del proyecto](./README.md) | [Siguiente →](./01-arquitectura-y-alcance.md)
+[← Anterior](./README.md) | [Índice CineFlow](./README.md) | [Siguiente →](./01-arquitectura-y-alcance.md)
 
 [🏠 Índice general](../../README.md)
 
 <!-- navigation:end -->
 
-Versión documental 1.0 · 22 de septiembre de 2026 · Marco Ramirez
+Esta guía se reescribió para que puedas construir la aplicación sin adivinar archivos, configuraciones ni comandos. Cada paso dice **dónde trabajar**, **qué copiar** y **qué debes ver**. Sigue el botón Siguiente; no necesitas abrir todos los documentos a la vez.
 
-## Qué recibes
+## Qué cambió
 
-Un paquete de instrucciones técnicas para implementar CineFlow: arquitectura, preparación, contrato de API, un bloque único de backend, modelo Firebase, diseño UI/UX, ocho etapas de frontend y verificación integral. Es documentación de implementación; no es un repositorio ejecutable ni afirma que la aplicación ya fue programada o probada.
+La guía anterior era una especificación: pedía implementar módulos sin entregar su código. Ahora incluye los archivos completos y un proyecto de referencia. Se mantienen React, Tailwind, TypeScript, Node/Express, Firebase, TMDB, usuarios, perfiles, favoritos e historial. Se elimina la instalación obligatoria de contracts, TanStack Query, Swagger, Pino, emuladores, Java y herramientas de CI durante el arranque.
 
-El backend se construye y valida completo antes de conectar el frontend. Sus módulos no se reparten entre las sesiones. El frontend evoluciona desde una interfaz con fixtures hasta la experiencia integrada con usuarios reales, perfiles, favoritos e historial sincronizado. Los comandos de ejecución posteriores al scaffold presuponen haber implementado los archivos y scripts indicados.
+## Dos carpetas diferentes
 
-## Decisiones cerradas
+- **Repositorio de guías:** `computo-en-la-nube-ad2026`. Aquí lees Markdown; NO ejecutes npm install en su raíz.
+- **Aplicación que vas a construir:** una carpeta nueva `cineflow-v2`, fuera del repositorio de guías. Aquí sí ejecutas npm.
 
-- Monorepo npm workspaces: React/TypeScript/Vite/Tailwind en apps/web; Node 24 LTS/Express 5/TypeScript en apps/api; esquemas Zod compartidos en packages/contracts.
-- Firebase Authentication administra registro, acceso, recuperación y renovación de tokens. No se crea un sistema paralelo de contraseñas/JWT.
-- Firestore guarda datos propios. Solamente la API accede a Firestore con Admin SDK.
-- TMDB se consulta desde la API; su token jamás se entrega al navegador.
-- YouTube reproduce tráilers insertables. No se ofrece streaming de películas completas.
-- Cuenta y perfil son distintos: una cuenta puede tener hasta cinco perfiles. No son cinco usuarios independientes ni controles parentales.
-- Favoritos e historial pertenecen a un perfil. Se sincronizan al consultar de nuevo; tiempo real queda fuera de v1.
-- No se requieren pagos, Firebase Storage, cargas de archivos ni generación con IA para esta versión.
+No borres una aplicación anterior. Usa una carpeta nueva para seguir esta versión: cambian algunas rutas y el modelo de datos. La nueva aplicación guarda datos en `cineflowUsers`; no migra ni sobrescribe colecciones de la propuesta anterior.
 
-## Orden de lectura y ejecución
+## Tu recorrido
 
-1. [Arquitectura y alcance](./01-arquitectura-y-alcance.md).
-2. [Instalación del monorepo](./02-instalacion-monorepo.md).
-3. [Configuración Firebase y TMDB](./03-firebase-tmdb-y-variables.md).
-4. [Contrato de datos y API](./04-contrato-api.md).
-5. [Backend completo en un bloque](./05-backend-completo.md).
-6. [Modelo Firestore y reglas](./06-firestore-modelo-reglas.md).
-7. [Sistema de diseño](./07-ui-ux.md).
-8. [Ruta evolutiva del frontend](./08-ruta-frontend.md), después etapas 1 a 8.
-9. [Pruebas y despliegue](./17-pruebas-y-despliegue.md).
-10. [Instrucciones para implementar con asistencia de IA](./18-instrucciones-implementacion.md).
-11. [Fuentes oficiales](./19-fuentes.md).
+| Paso | Acción | Resultado visible |
+|---|---|---|
+| 1 | Entender la estructura | Saber qué hace web y qué hace api |
+| 2 | Crear carpetas y pegar configuraciones | Pantalla “CineFlow instalado” |
+| 3 | Copiar el backend completo | /health devuelve ok |
+| 4 | Frontend 1: interfaz | Tarjetas de ejemplo |
+| 5 | Frontend 2: API | Catálogo servido desde Express |
+| 6 | Frontend 3: detalle | Abrir una ficha |
+| 7 | Configurar TMDB y Firebase | Catálogo real y servicios preparados |
+| 8 | Frontend 4: cuentas | Registro, acceso y recuperación |
+| 9 | Frontend 5: perfiles | Seleccionar y renombrar perfiles |
+| 10 | Frontend 6: favoritos | Mi lista en la nube |
+| 11 | Frontend 7: historial | Tráiler, pausa y reanudación |
+| 12 | Frontend 8: comprobación | Compilar y comprobar recorrido |
 
-## Hitos
+Los documentos de API, modelo, diseño y fuentes son **consulta**, no tareas previas que debas memorizar. El backend se copia completo una sola vez; no se modifica por cada etapa del front.
 
-| Hito | Evidencia que lo cierra |
-|---|---|
-| B0 | API completa con contratos, pruebas contra emuladores y documentación OpenAPI |
-| F1–F3 | Frontend navegable, catálogo y búsqueda conectados |
-| F4–F6 | Identidad, perfiles y favoritos sincronizados |
-| F7 | Tráilers con historial y reanudación |
-| F8 | Flujo integral, accesibilidad y build desplegable |
+## Si quieres comparar con una solución terminada
 
-El tiempo sugerido es 16–24 horas para implementar y verificar B0, y ocho etapas de tres horas para frontend, más práctica autónoma. Es una estimación para quien ya conoce JavaScript, HTTP y Git. Cada etapa puede dividirse en dos clases de 90 minutos.
+La carpeta [codigo-referencia](./codigo-referencia/README.md) contiene la aplicación final. Úsala como apoyo para localizar diferencias. Su README tiene una ruta rápida, pero para aprender sigue los pasos principales.
 
-## Cómo usar estos documentos
+## Regla para no perderte
 
-Trabajar sobre el mismo repositorio, conservar un único package-lock.json y hacer un commit por hito. Implementar primero contratos y backend. No empezar cada sesión con un proyecto nuevo. Los ejercicios usan fixtures inventados y los emuladores; la validación de TMDB real requiere tu credencial. Consultar 19_FUENTES para distinguir decisiones del proyecto de requisitos de los proveedores.
+En una terminal, confirma siempre que estás en `cineflow-v2`. Un bloque marcado como Archivo se pega en VS Code; un bloque marcado como Terminal se ejecuta en la terminal. Nunca pegues JSON o TypeScript como si fuera un comando.
+
+Tiempo orientativo: instalación 30–45 min; backend completo 60–120 min de copia y explicación; cada etapa frontend 60–120 min más práctica. No avanzar cuando falle el punto de comprobación.
 
 ---
 
 <!-- navigation:start -->
 
-[← Anterior](./README.md) | [Índice del proyecto](./README.md) | [Siguiente →](./01-arquitectura-y-alcance.md)
+[← Anterior](./README.md) | [Índice CineFlow](./README.md) | [Siguiente →](./01-arquitectura-y-alcance.md)
 
 [🏠 Índice general](../../README.md)
 

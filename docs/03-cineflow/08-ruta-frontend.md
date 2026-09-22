@@ -1,55 +1,49 @@
-# 08 — Matriz maestra del frontend
+# Consulta — Mapa de las ocho etapas frontend
 
 <!-- navigation:start -->
 
-[← Anterior](./07-ui-ux.md) | [Índice del proyecto](./README.md) | [Siguiente →](./09-frontend-etapa-01.md)
+[← Anterior](./07-ui-ux.md) | [Índice CineFlow](./README.md) | [Siguiente →](./18-instrucciones-implementacion.md)
 
 [🏠 Índice general](../../README.md)
 
 <!-- navigation:end -->
 
-## Preparación
+El backend no cambia durante estas etapas. Cada archivo incluye código completo, una verificación y un ejercicio pequeño. No hace falta memorizar toda esta tabla.
 
-Backend B0 completo disponible. Las etapas 1 y 2 pueden usar fixtures desde la API; para etapa 3 elegir modo tmdb y comprobar credencial o continuar con fixtures dejando constancia. Los tests automatizados no dependen de Internet. Se presupone JavaScript, funciones, arrays, módulos, HTML/CSS y HTTP.
+| Etapa | Aprendes | Resultado |
+|---|---|---|
+| 1 | JSX, componentes, map y Tailwind | Interfaz con tarjetas |
+| 2 | fetch, hook y router | Catálogo desde API |
+| 3 | Parámetros de ruta | Ficha de película/serie |
+| Configuración | TMDB y Firebase | Servicios reales preparados |
+| 4 | SDK Auth y contexto | Cuenta y acceso |
+| 5 | Estado y formularios | Perfiles |
+| 6 | PUT/DELETE y estado remoto | Favoritos |
+| 7 | Efectos, refs y eventos | Player e historial |
+| 8 | TypeScript, build y pruebas | Revisión final |
 
-Cada etapa propone 180 minutos: diagnóstico 10, teoría 25, demostración 20, práctica guiada 80, pausa 10, práctica autónoma 25 y cierre 10. Total 180; dividir en dos clases de 90 cuando sea conveniente. La implementación extra que no quepa se termina como trabajo autónomo sin declarar el hito cerrado antes de verificarlo.
+## Cómo trabajar una etapa
 
-| Etapa | Resultado observable | Conceptos | Evidencia |
-|---|---|---|---|
-| 1 | Montar interfaz responsive | JSX, props, composición y Tailwind | Home con fixtures y estados |
-| 2 | Navegar y consultar catálogo | Router, fetch, hooks, efectos | Home conectado |
-| 3 | Buscar y abrir títulos | URL state, debounce y cancelación | Búsqueda y detalle |
-| 4 | Acceder con cuenta real | Context, Auth y rutas protegidas | Registro/acceso/recuperación |
-| 5 | Separar experiencia por perfil | Caché por identidad y CRUD | Dos perfiles aislados |
-| 6 | Persistir favoritos | Mutations e invalidación | Mi lista sincronizada |
-| 7 | Guardar reproducción | Refs, lifecycle y concurrencia | Historial/reanudación |
-| 8 | Verificar y publicar build | Pruebas, accesibilidad y entorno | Flujo integral |
+1. Lee Meta y Antes de comenzar.
+2. Abre la carpeta de la aplicación en VS Code.
+3. Crea/reemplaza sólo los archivos enumerados.
+4. Guarda todos los archivos.
+5. Ejecuta el comando que indica esa etapa.
+6. Realiza la comprobación visible.
+7. Haz el ejercicio y registra un commit.
+8. Continúa con Siguiente.
 
-## Reglas de evolución
+Duración flexible: 10 minutos de explicación, 15 de demostración, 45–75 de práctica, 10 de revisión y 10 de reto. La etapa 7 puede requerir una segunda sesión por la integración del reproductor. No asumir que una pantalla visible significa que Firebase ya fue validado.
 
-- Mantener un solo App, router y QueryClient; no copiar un proyecto distinto en cada etapa.
-- Separar estado remoto (TanStack Query), identidad (AuthProvider), perfil activo (ProfileProvider) y estado efímero de UI (useState).
-- LocalStorage sólo guarda preferencia de perfil por uid y preferencias de interfaz. Favoritos/historial viven en API; no mantener dos fuentes de verdad.
-- No guardar manualmente tokens. El SDK Auth gestiona su persistencia; pedir getIdToken cuando se llama a la API.
-- Cada hito incluye loading/error/empty y cleanup de efectos. React StrictMode permanece activado para detectar efectos incorrectos.
+## Lo que nunca debes mezclar
 
-## Evaluación del proyecto (propuesta, no calificación institucional)
-
-| Dimensión | Peso |
-|---|---|
-| Funcionalidad de flujos | 35 |
-| Integridad de datos y aislamiento | 25 |
-| UI responsive y accesibilidad | 20 |
-| Pruebas y manejo de errores | 15 |
-| Documentación y reproducibilidad | 5 |
-
-Cada dimensión se califica completa si todos sus criterios de 17 pasan; parcial si quedan fallas documentadas; cero si falta evidencia. No aprobar el proyecto con acceso cruzado entre cuentas aunque el puntaje total sea alto.
+Los ejemplos de terminal van en terminal; los bloques de archivos en VS Code. No ejecutes el repositorio de documentación como si fuera la app. No copies todo codigo-referencia encima de una etapa parcial si quieres conservar el desarrollo evolutivo: úsalo para comparar o arrancar la versión final por separado.
 
 ---
 
 <!-- navigation:start -->
 
-[← Anterior](./07-ui-ux.md) | [Índice del proyecto](./README.md) | [Siguiente →](./09-frontend-etapa-01.md)
+[← Anterior](./07-ui-ux.md) | [Índice CineFlow](./README.md) | [Siguiente →](./18-instrucciones-implementacion.md)
 
 [🏠 Índice general](../../README.md)
 

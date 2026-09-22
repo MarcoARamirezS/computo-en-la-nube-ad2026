@@ -1,76 +1,52 @@
-# 07 — Sistema de diseño y experiencia
+# Consulta — Diseño visual explicado sin herramientas extra
 
 <!-- navigation:start -->
 
-[← Anterior](./06-firestore-modelo-reglas.md) | [Índice del proyecto](./README.md) | [Siguiente →](./08-ruta-frontend.md)
+[← Anterior](./06-firestore-modelo-reglas.md) | [Índice CineFlow](./README.md) | [Siguiente →](./08-ruta-frontend.md)
 
 [🏠 Índice general](../../README.md)
 
 <!-- navigation:end -->
 
-## Dirección visual
+## Objetivo
 
-CineFlow usa un entorno cinematográfico oscuro, portadas grandes, gradientes suaves y acento coral. Mantener marca propia y atribuciones en Créditos. La experiencia prioriza descubrir, guardar y reproducir un tráiler en tres acciones o menos desde inicio.
+Que el alumno pueda encontrar un título, abrirlo y guardar un favorito con una interfaz clara en teléfono y computadora. No necesitas Figma ni una librería de componentes para comenzar.
 
-| Token | Valor propuesto | Uso |
+| Elemento | Decisión | Motivo |
 |---|---|---|
-| Fondo | #0B0F19 | Página |
-| Superficie | #161D2B | Tarjetas y paneles |
-| Texto | #F8FAFC | Texto principal |
-| Texto secundario | #CBD5E1 | Metadatos |
-| Acento | #F43F5E | Identidad y controles destacados |
-| Foco | #FDE047 | Indicador visible de teclado |
-| Borde | #334155 | Separaciones |
-| Espaciado | 4, 8, 12, 16, 24, 32, 48 px | Sistema consistente |
-| Radio | 12 px tarjetas; 16 px diálogos | Forma |
+| Fondo | Azul marino #0B0F19 | Ambiente cinematográfico |
+| Paneles | #161D2B | Separar bloques |
+| Botón principal | Rosa #FB7185 con texto oscuro | Destacar la acción |
+| Texto secundario | #CBD5E1 | Mantener legibilidad |
+| Foco | Amarillo #FDE047 | Ver posición del teclado |
+| Tarjetas | Rejilla que adapta columnas | Móvil sin scroll horizontal global |
+| Tipografía | system-ui | Sin descarga adicional |
 
-Usar texto oscuro sobre botones coral y comprobar contraste con herramienta, no asumir que texto blanco pequeño cumple. Tipografía system-ui evita dependencias y cargas externas. Body 16 px, auxiliar 14 px, títulos con clamp. Sin autoplay de sonido ni video pesado en el hero.
+## Dónde modificar estilos
 
-## Pantallas y rutas
+El archivo único `apps/web/src/styles.css` contiene Tailwind y las clases básicas. Cambiar `.panel` actualiza paneles; `.btn` actualiza botones; `.grid-media` controla tarjetas. En la etapa 1 se copia completo. No hagas un CSS nuevo por cada pantalla al principio.
 
-| Ruta | Estado requerido | Contenido |
-|---|---|---|
-| / | Público | Hero, filas de películas y series |
-| /explorar | Público | Tipo, género y páginas |
-| /buscar?q=... | Público | Resultados y término compartible |
-| /titulo/:mediaType/:id | Público | Ficha, reparto y Ver tráiler |
-| /acceso | Visitante | Email, contraseña, recuperación |
-| /registro | Visitante | Cuenta y términos de uso |
-| /recuperar | Público | Envío con respuesta neutra |
-| /perfiles | Cuenta | Elegir y gestionar perfiles |
-| /mi-lista | Cuenta + perfil | Favoritos |
-| /historial | Cuenta + perfil | Historial de tráilers |
-| /cuenta | Cuenta | Nombre, idioma, verificación y salida |
-| /creditos | Público | Proveedores y alcance |
-| * | Público | 404 con regreso |
+## Revisión rápida después de cada etapa
 
-Si visitante pide favorito, navegar a acceso con returnTo relativo permitido. Validar returnTo con allowlist o URL del mismo origen; nunca redirigir a dominios arbitrarios. Tras entrar, volver al título; pedir de nuevo la acción si no fue conservada de forma segura.
+1. Abre DevTools y prueba ancho 390 px.
+2. Comprueba que no hay scroll horizontal de toda la página.
+3. Navega con Tab: todos los controles deben tener foco visible.
+4. Envía un formulario incompleto: debe informar qué falta.
+5. Detén API: debe verse error, no una pantalla vacía.
+6. Comprueba que las imágenes ausentes no impiden leer el título.
+7. Usa zoom 200% y verifica que los controles siguen accesibles.
 
-## Componentes y comportamiento
+## Textos correctos
 
-AppHeader fijo con espacio reservado para no tapar contenido; navegación móvil mediante botón accesible. Hero con texto sobre gradiente, no sobre imagen sin contraste. MediaCard es enlace al detalle; botón favorito separado sin anidar button dentro de enlace interactivo. MediaRow usa scroll horizontal y scroll-snap, flechas opcionales; el teclado puede recorrer tarjetas.
+Usar “Ver tráiler”, “Mi lista”, “Historial de tráilers” y “Actualizar desde la nube”. No usar “Ver película completa”. El botón Cuenta / Acceso abre el formulario o la cuenta según haya sesión. Mostrar el perfil activo en el encabezado ayuda a evitar guardar en otra lista.
 
-Dialog accesible con nombre, foco atrapado, Escape, retorno de foco y scroll bloqueado; preferir elemento dialog nativo bien implementado. TrailerPlayer conserva controles oficiales. FavoriteButton informa estado mediante aria-pressed y texto. Toast usa aria-live polite para confirmaciones, no para cada segundo de progreso.
-
-## Estados obligatorios por pantalla
-
-Loading con skeleton de tamaño final; empty con explicación y acción; error con reintento y requestId cuando sirva; success; offline con aviso de que cambios no se guardaron. No mostrar favorito guardado si falló el servidor. Imágenes rotas usan placeholder local y alt significativo; no reintentar infinitamente onError.
-
-## Responsive y accesibilidad
-
-Validar 360, 768 y 1440 px. Márgenes 16/24/48 px; tarjetas en fila con ancho estable, sin overflow horizontal de toda la página. Controles con área táctil de al menos 44×44 px como objetivo del proyecto. Incluir enlace “Saltar al contenido”, landmarks, un h1 por página, labels visibles, mensajes de error asociados y foco perceptible.
-
-Respetar prefers-reduced-motion. Ningún dato debe mostrarse sólo al hover. Para player respetar dimensiones mínimas del proveedor, en móvil usar altura suficiente (mínimo 200 px) aunque cambie la proporción ideal. No tapar marca ni controles de YouTube.
-
-## Criterio de revisión visual
-
-Capturar inicio, detalle, acceso y favoritos en tres tamaños. Revisar textos largos, portada ausente, listas vacías, zoom 200%, modal y navegación por teclado. Entrega sin botones ficticios, rutas rotas ni pantallas de “próximamente” para funciones incluidas en v1.
+La guía usa una página de reproducción integrada, no un modal complejo, para facilitar el manejo de foco y el ciclo de vida del player. No se ocultan los controles oficiales de YouTube.
 
 ---
 
 <!-- navigation:start -->
 
-[← Anterior](./06-firestore-modelo-reglas.md) | [Índice del proyecto](./README.md) | [Siguiente →](./08-ruta-frontend.md)
+[← Anterior](./06-firestore-modelo-reglas.md) | [Índice CineFlow](./README.md) | [Siguiente →](./08-ruta-frontend.md)
 
 [🏠 Índice general](../../README.md)
 

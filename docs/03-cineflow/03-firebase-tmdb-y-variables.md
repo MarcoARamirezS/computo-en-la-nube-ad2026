@@ -1,105 +1,111 @@
-# 03 — Firebase, TMDB y variables
+# 7. Conectar los servicios reales: TMDB y Firebase
 
 <!-- navigation:start -->
 
-[← Anterior](./02-instalacion-monorepo.md) | [Índice del proyecto](./README.md) | [Siguiente →](./04-contrato-api.md)
+[← Anterior](./11-frontend-etapa-03.md) | [Índice CineFlow](./README.md) | [Siguiente →](./12-frontend-etapa-04.md)
 
 [🏠 Índice general](../../README.md)
 
 <!-- navigation:end -->
 
-## Desarrollo local primero
+**Haz este paso después de poder abrir una ficha del catálogo demo.** Vamos a cambiar la configuración, no el código del backend.
 
-Crear firebase.json en raíz:
+## Parte A — TMDB para películas y series reales
 
-```json
-{
-  "firestore": {
-    "rules": "firebase/firestore.rules",
-    "indexes": "firebase/firestore.indexes.json"
-  },
-  "emulators": {
-    "auth": { "port": 9099 },
-    "firestore": { "port": 8080 },
-    "ui": { "enabled": true, "port": 4001 },
-    "singleProjectMode": true
+1. Crea una cuenta en [TMDB](https://www.themoviedb.org/).
+2. Abre ajustes de cuenta → API y solicita acceso para el uso real de tu proyecto.
+3. Copia **API Read Access Token**. No es la contraseña de tu cuenta.
+4. En VS Code abre `cineflow-v2/apps/api/.env`.
+5. Cambia únicamente estas dos variables:
+
+```dotenv
+CATALOG_MODE=tmdb
+TMDB_READ_ACCESS_TOKEN=PEGA_AQUI_TU_TOKEN_DE_LECTURA
+```
+
+6. Detén `npm run dev` con Ctrl+C y vuelve a ejecutarlo desde la raíz.
+7. Abre http://localhost:4000/api/catalog?type=movie. Debes ver títulos reales y URLs de carteles.
+8. Abre el frontend y busca una película. Si TMDB no está accesible desde tu red, vuelve temporalmente a `CATALOG_MODE=demo`; no borres código.
+
+**Comprobación:** hay carteles y títulos reales. El token de TMDB sólo existe en `apps/api/.env`, nunca en `apps/web`.
+
+## Parte B — Crear el proyecto Firebase
+
+1. Abre [Firebase Console](https://console.firebase.google.com/).
+2. Crea un proyecto de desarrollo, por ejemplo CineFlow Curso. Google asignará un **Project ID**: cópialo.
+3. En Authentication activa el proveedor **Email/Password**.
+4. En ajustes de Authentication, dominios autorizados, agrega `localhost` si no aparece. Más adelante agregarás tu dominio de despliegue.
+5. En Firestore Database crea una base de datos predeterminada, elige la región adecuada y usa reglas restringidas.
+6. Abre la pestaña Rules de Firestore, reemplaza las reglas con el siguiente contenido y publica:
+
+```text
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
 ```
 
-Usar demo-cineflow en CLI, backend y configuración web. El proyecto demo evita usar una base real por accidente; TMDB sigue siendo un servicio externo cuando CATALOG_MODE=tmdb. En modo fixture no se necesita cuenta externa.
+Esto bloquea clientes directos. Nuestro backend usa Firebase Admin y verifica identidad y pertenencia por su cuenta. No uses `allow read, write: if true` para resolver problemas.
 
-## apps/api/.env.example
+## Parte C — Conectar el backend a Firebase
 
-```dotenv
-NODE_ENV=development
-PORT=4000
-CORS_ORIGINS=http://localhost:5173
-FIREBASE_PROJECT_ID=demo-cineflow
-USE_FIREBASE_EMULATORS=true
-FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
-FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
-CATALOG_MODE=fixture
-TMDB_READ_ACCESS_TOKEN=
-LOG_LEVEL=info
-```
+1. En ajustes del proyecto → cuentas de servicio, genera una clave privada para tu entorno de desarrollo.
+2. Guarda el archivo JSON **fuera del repositorio**. No lo subas a Git ni lo compartas por chat.
+3. Abre `apps/api/.env`, conserva PORT, CORS_ORIGIN y las variables TMDB, y completa:
 
-Hosts Admin SDK sin http://. En emuladores inicializar Admin con projectId sin cuenta de servicio. Validar variables con Zod al arrancar; leer flags comparando con 'true', porque Boolean('false') es true. En producción rechazar USE_FIREBASE_EMULATORS=true y cualquier host de emulador presente. Rechazar CATALOG_MODE=fixture en producción salvo un despliegue demo identificado explícitamente que no se use como validación real.
-
-## apps/web/.env.example
+Ejemplo macOS/Linux:
 
 ```dotenv
-VITE_API_BASE_URL=http://localhost:4000/api/v1
-VITE_USE_FIREBASE_EMULATORS=true
-VITE_FIREBASE_API_KEY=demo-key
-VITE_FIREBASE_AUTH_DOMAIN=demo-cineflow.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=demo-cineflow
-VITE_FIREBASE_APP_ID=demo-app
-VITE_AUTH_EMULATOR_URL=http://127.0.0.1:9099
+FIREBASE_PROJECT_ID=tu-project-id-real
+GOOGLE_APPLICATION_CREDENTIALS=/Users/tuusuario/cineflow-secrets/admin.json
 ```
 
-Conectar Auth Emulator una sola vez antes de usar Auth. El web no inicializa Firestore. La configuración pública de Firebase identifica el proyecto y no reemplaza la autorización. Nunca agregar VITE_TMDB_TOKEN, claves privadas ni cuentas de servicio. Los valores VITE_* quedan visibles en el bundle.
+Ejemplo Windows (usa `/` incluso en Windows):
 
-## Proyecto Firebase real
+```dotenv
+FIREBASE_PROJECT_ID=tu-project-id-real
+GOOGLE_APPLICATION_CREDENTIALS=C:/Users/tuusuario/cineflow-secrets/admin.json
+```
 
-1. Crear un proyecto de desarrollo en Firebase Console y registrar una aplicación web.
-2. Activar Authentication con Email/Password; configurar política de contraseñas. Configurar dominios autorizados incluyendo el dominio real del frontend y localhost si se necesita.
-3. Crear Firestore en modo restringido, seleccionar región apropiada para usuarios y backend y desplegar las reglas de 06.
-4. Copiar la configuración de la aplicación web a su .env; poner VITE_USE_FIREBASE_EMULATORS=false y quitar la URL del emulador.
-5. En API poner FIREBASE_PROJECT_ID real y USE_FIREBASE_EMULATORS=false; eliminar ambas variables *_EMULATOR_HOST.
-6. Usar Application Default Credentials. En proveedor externo montar un archivo de cuenta de servicio fuera del repositorio y definir GOOGLE_APPLICATION_CREDENTIALS con la ruta absoluta al archivo. En infraestructura con identidad administrada usar su identidad y permisos IAM mínimos necesarios.
-7. Configurar plantillas y URL de retorno para verificación de email y recuperación de contraseña. Probarlas con una cuenta propia de prueba.
-8. Desplegar reglas e índices al proyecto seleccionado con firebase deploy --only firestore:rules,firestore:indexes --project ID_REAL.
+Reemplaza las rutas por la ubicación REAL del JSON. No pegues el contenido del JSON en la variable; escribe su ruta. Firebase Admin usa esa cuenta para acceder al proyecto, y sus permisos deben permitir Firestore y verificación de usuarios. En un despliegue se configurará mediante secretos del proveedor o identidad administrada, no un archivo público.
 
-No reutilizar demo-cineflow con credenciales reales. Mantener desarrollo y producción separados. No se promete gratuidad del despliegue; revisar cuotas y consumo del proyecto antes de publicarlo.
+## Parte D — Conectar el frontend a Firebase Auth
 
-## TMDB
+1. En ajustes del proyecto registra una aplicación **Web** con nombre CineFlow Web.
+2. Firebase mostrará `firebaseConfig`. Necesitas apiKey, authDomain, projectId y appId.
+3. Abre `apps/web/.env` y completa los valores:
 
-1. Crear cuenta en TMDB y solicitar acceso API desde ajustes, preferentemente en escritorio.
-2. Leer sus condiciones y registrar CineFlow como proyecto educativo/no comercial si ese es el uso real.
-3. Copiar API Read Access Token únicamente a TMDB_READ_ACCESS_TOKEN del backend.
-4. Cambiar CATALOG_MODE=tmdb. La API envía Authorization: Bearer al host fijo https://api.themoviedb.org/3.
-5. Probar popular, búsqueda y detalle. Usar language=es-MX donde sea admitido; si faltan textos o tráilers, consultar en-US como alternativa explícita.
-6. Incorporar logo aprobado y atribución de TMDB en Créditos. Consultar el aviso exacto en 19_FUENTES.
+```dotenv
+VITE_API_URL=http://localhost:4000/api
+VITE_FIREBASE_API_KEY=valor_de_apiKey
+VITE_FIREBASE_AUTH_DOMAIN=valor_de_authDomain
+VITE_FIREBASE_PROJECT_ID=valor_de_projectId
+VITE_FIREBASE_APP_ID=valor_de_appId
+```
 
-No crear una ruta /proxy?url=...: sólo permitir endpoints y parámetros definidos. Un usuario nunca decide el host que consulta el servidor.
+La configuración Web identifica el proyecto; no es la cuenta de servicio. Nunca agregues aquí `private_key` ni el token TMDB. Toda variable `VITE_` es visible en el navegador.
 
-## Diagnóstico
+4. Verifica que Project ID de web, backend y JSON corresponde al mismo proyecto.
+5. Reinicia `npm run dev`. Los cambios de `.env` requieren reinicio.
 
-| Síntoma | Comprobación |
-|---|---|
-| 401 privado | ID token del SDK, proyecto correcto y emuladores consistentes |
-| TMDB 401 | Token de lectura en API, reinicio y CATALOG_MODE |
-| permission-denied en web | No usar SDK Firestore; la app llama a Express |
-| Cuenta existe pero /me falla | Reintentar PUT /me; debe ser idempotente |
-| CORS | Origen exacto, puerto y protocolo incluidos en allowlist |
-| Auth persiste pero UI pierde usuario | Esperar resolución inicial de onAuthStateChanged |
+## Comprobación antes de seguir
+
+- /health sigue respondiendo.
+- El catálogo real se ve, o mantuviste demo explícitamente si aún no tienes TMDB.
+- Ambos `.env` usan el mismo proyecto Firebase.
+- Ningún secreto aparece en `git status` como archivo a subir.
+
+Todavía no hay formulario de acceso: lo crearás en la siguiente etapa. Allí se comprobará el primer usuario y el primer documento de Firestore. Authentication, Firestore y TMDB tienen cuotas y condiciones propias; revisa su consumo en la consola, no se promete despliegue ilimitado gratuito.
 
 ---
 
 <!-- navigation:start -->
 
-[← Anterior](./02-instalacion-monorepo.md) | [Índice del proyecto](./README.md) | [Siguiente →](./04-contrato-api.md)
+[← Anterior](./11-frontend-etapa-03.md) | [Índice CineFlow](./README.md) | [Siguiente →](./12-frontend-etapa-04.md)
 
 [🏠 Índice general](../../README.md)
 

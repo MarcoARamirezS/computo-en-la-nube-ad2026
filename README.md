@@ -39,12 +39,12 @@ El proyecto utiliza una arquitectura basada en monorepo con:
 
 ### 03. CineFlow
 
-Clon visual de una plataforma de catálogo cinematográfico, con identidad propia, usuarios, perfiles, favoritos e historial de tráilers. **Backend completo en un bloque y frontend React desarrollado en ocho etapas.**
+Clon visual de una plataforma de catálogo cinematográfico, con identidad propia, usuarios, perfiles, favoritos e historial de tráilers. **Guía v2 sencilla: backend completo en un bloque y frontend React en ocho etapas, con código listo para copiar.**
 
 - React, TypeScript, Vite y Tailwind CSS.
 - Node.js/Express, Firebase Authentication y Firestore.
 - Catálogo TMDB y tráilers de YouTube.
-- 20 documentos: arquitectura, instalación, API, backend, UI/UX, etapas y validación.
+- 20 documentos revisados: comandos puntuales, archivos completos, comprobaciones y ocho etapas. Código de referencia incluido.
 
 📖 [Ir al proyecto CineFlow](./docs/03-cineflow/README.md) · [Comenzar la guía](./docs/03-cineflow/00-leeme.md)
 
@@ -85,7 +85,8 @@ Clon visual de una plataforma de catálogo cinematográfico, con identidad propi
         ├── 16-frontend-etapa-08.md
         ├── 17-pruebas-y-despliegue.md
         ├── 18-instrucciones-implementacion.md
-        └── 19-fuentes.md
+        ├── 19-fuentes.md
+        └── codigo-referencia/  # Aplicación final de apoyo
 ```
 
 ---
@@ -240,7 +241,7 @@ git merge feature/session-01
 |---|---|---|---|
 | 01 | Nuxt 4 - Componentes y Eventos | Frontend | Disponible |
 | 02 | [Parking Control](./docs/02-parking-control/README.md) | Full Stack | En desarrollo |
-| 03 | [CineFlow](./docs/03-cineflow/README.md) | Backend completo + frontend evolutivo | Guía disponible: 20 documentos |
+| 03 | [CineFlow](./docs/03-cineflow/README.md) | Backend completo + frontend evolutivo | Guía v2 paso a paso + código de referencia |
 
 ---
 
@@ -266,6 +267,6 @@ Este repositorio tiene como objetivo servir como material práctico para desarro
 
 Copiar `README.md` y la carpeta `docs/` sobre la copia local del repositorio, conservando los archivos adicionales que puedas tener. El ZIP no incluye el historial `.git`: conserva el de tu repositorio existente. Revisar `git diff` antes de hacer commit.
 
-Se incorporó `docs/03-cineflow/`, se corrigió el árbol de archivos de esta portada y se agregó navegación a los documentos existentes. El contenido didáctico de Nuxt y Parking Control se conserva. Las sesiones 6–8 de Parking Control siguen pendientes.
+CineFlow se reescribió como guía paso a paso y ahora incluye `docs/03-cineflow/codigo-referencia/`. Copia toda esa carpeta al actualizar para que no falten archivos. El contenido de Nuxt y Parking Control se conserva; sus sesiones pendientes siguen pendientes.
 
 [Comenzar recorrido →](./docs/01-preparacion-nuxt4-eventos.md) · [Abrir CineFlow →](./docs/03-cineflow/README.md)

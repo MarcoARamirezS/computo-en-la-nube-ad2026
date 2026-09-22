@@ -1,104 +1,784 @@
-# 05 — Backend completo: una sola entrega B0
+# 3. Copiar el backend completo una sola vez
 
 <!-- navigation:start -->
 
-[← Anterior](./04-contrato-api.md) | [Índice del proyecto](./README.md) | [Siguiente →](./06-firestore-modelo-reglas.md)
+[← Anterior](./02-instalacion-monorepo.md) | [Índice CineFlow](./README.md) | [Siguiente →](./09-frontend-etapa-01.md)
 
 [🏠 Índice general](../../README.md)
 
 <!-- navigation:end -->
 
-## Objetivo y condición de cierre
+**Antes:** terminaste instalación y detuviste Vite con Ctrl+C. **Meta:** abrir `/health` y consultar el catálogo demo. Todavía no necesitas credenciales.
 
-Implementar en un único bloque todos los módulos del contrato 04. El frontend podrá desarrollarse después sin agregar endpoints por sesión. “Completo” significa que rutas, persistencia, autorización, pruebas, configuración y documentación están implementadas; este archivo es la especificación para lograrlo.
+Esta es toda la implementación del backend de la versión sencilla. Copia los seis archivos en el orden mostrado. Los archivos se importan entre sí: termina de copiarlos antes de arrancar. No debes diseñar clases, rutas ni repositorios adicionales.
 
-Resultado requerido: apps/api, packages/contracts, configuración de emuladores, seed idempotente, OpenAPI y pruebas reproducibles. No dejar TODO, rutas vacías, respuestas hardcodeadas en modo tmdb ni mocks activos en producción.
+## Paso 1 — Reglas y tipos
 
-## 1. Contratos primero
+`model.ts` define las formas de datos y las validaciones. Un favorito tiene una clave estable para no duplicarse. El progreso tiene una versión para detectar cambios de otra pestaña.
 
-Crear packages/contracts/src/{common,me,profiles,catalog,favorites,history}.ts e index.ts. Definir esquemas de request y response, exportar tipos mediante z.infer. Usar transformaciones explícitas en query strings; un page vacío no debe volverse cero. Schemas de salida deben admitir imágenes null y arrays vacíos. Las fechas viajan como ISO, no como Timestamp de Firestore.
+### Archivo: `apps/api/src/model.ts`
 
-Compilar contracts antes de API. Los esquemas compartidos no importan Node, Admin SDK ni React. Cambiar un DTO requiere actualizar OpenAPI y prueba de contrato dentro de B0.
+**Acción:** crear el archivo si no existe; si existe, reemplazar TODO su contenido por lo siguiente. Guardar antes de continuar.
 
-## 2. Configuración y arranque
+```ts
+import { z } from "zod";
+export type Kind = "movie" | "tv";
+export interface Media {
+  id: number;
+  type: Kind;
+  title: string;
+  overview: string;
+  poster: string | null;
+}
+export interface Video {
+  id: string;
+  title: string;
+}
+export interface Favorite {
+  media: Media;
+  addedAt: string;
+}
+export interface History {
+  media: Media;
+  videoId: string;
+  position: number;
+  duration: number;
+  version: number;
+  completed: boolean;
+  updatedAt: string;
+}
+export interface Profile {
+  id: string;
+  name: string;
+  favorites: Record<string, Favorite>;
+  history: Record<string, History>;
+}
+export interface Account {
+  name: string;
+  profiles: Profile[];
+}
+export const emptyAccount = (): Account => ({
+  name: "Mi cuenta",
+  profiles: [{ id: "main", name: "Principal", favorites: {}, history: {} }],
+});
+export class Problem extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+export const nameSchema = z
+  .object({ name: z.string().trim().min(1).max(30) })
+  .strict();
+export const mediaSchema = z.object({
+  type: z.enum(["movie", "tv"]),
+  id: z.coerce.number().int().positive(),
+});
+export const progressSchema = z
+  .object({
+    videoId: z.string().regex(/^[\w-]{11}$/),
+    position: z.number().finite().min(0),
+    duration: z.number().finite().positive().max(14400),
+    version: z.number().int().min(0),
+  })
+  .strict()
+  .refine((v) => v.position <= v.duration, "La posición supera la duración");
+export function profileOf(account: Account, id: string): Profile {
+  const p = account.profiles.find((p) => p.id === id);
+  if (!p) throw new Problem(404, "Perfil no disponible");
+  return p;
+}
+export function addProfile(account: Account, id: string, name: string) {
+  if (account.profiles.length >= 5)
+    throw new Problem(409, "Máximo cinco perfiles");
+  account.profiles.push({ id, name, favorites: {}, history: {} });
+}
+export function saveHistory(
+  profile: Profile,
+  media: Media,
+  input: z.infer<typeof progressSchema>,
+): History {
+  const key = `${media.type}_${media.id}_${input.videoId}`;
+  const old = profile.history[key];
+  if ((old?.version ?? 0) !== input.version)
+    throw new Problem(
+      409,
+      "El progreso cambió. Cierra el reproductor y vuelve a abrirlo.",
+    );
+  const item = {
+    media,
+    videoId: input.videoId,
+    position: input.position,
+    duration: input.duration,
+    version: input.version + 1,
+    completed: input.position / input.duration >= 0.95,
+    updatedAt: new Date().toISOString(),
+  };
+  profile.history[key] = item;
+  const keys = Object.keys(profile.history).sort((a, b) =>
+    profile.history[b].updatedAt.localeCompare(profile.history[a].updatedAt),
+  );
+  for (const key of keys.slice(50)) delete profile.history[key];
+  return item;
+}
+```
 
-Crear config/env.ts para validar entorno, config/firebase.ts para inicializar Admin una vez y integrations/tmdb/client.ts para la conexión externa. Separar app.ts (crea Express sin listen) de server.ts (abre puerto). Así Supertest usa app sin puertos reales.
+## Paso 2 — Conexión con Firestore
 
-Orden de middleware: requestId; logger con redacción de secretos; helmet; CORS allowlist; límites por IP; parser JSON máximo 32 KB; rutas; notFound; errorHandler. Al confiar en un proxy configurar únicamente el número/topología conocida de saltos; no confiar indiscriminadamente en X-Forwarded-For.
+`store.ts` carga y modifica la cuenta con una transacción. Sólo se conecta a Firebase cuando llega una petición privada: por eso el catálogo demo funciona sin credenciales.
 
-Errores asíncronos llegan al manejador de Express 5. Traducir Zod, Auth, Firestore y proveedor a códigos estables. No registrar Authorization, tokens, contraseñas, cuerpo completo de Auth ni account credentials. Pino registra requestId, método, ruta normalizada, status y duración.
+### Archivo: `apps/api/src/store.ts`
 
-## 3. Identidad y autorización
+**Acción:** crear el archivo si no existe; si existe, reemplazar TODO su contenido por lo siguiente. Guardar antes de continuar.
 
-middleware/auth.ts extrae Bearer, verifica mediante getAuth().verifyIdToken(token, true) y agrega sólo uid y claims necesarios al contexto. Un token revocado o usuario deshabilitado devuelve 401. En emulador se usa la configuración oficial, nunca un bypass propio que acepte cualquier JWT.
+```ts
+import { applicationDefault, getApps, initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
+import { emptyAccount, Problem, type Account } from "./model.js";
+function app() {
+  if (!process.env.FIREBASE_PROJECT_ID)
+    throw new Problem(503, "Configura Firebase en apps/api/.env");
+  return (
+    getApps()[0] ??
+    initializeApp({
+      credential: applicationDefault(),
+      projectId: process.env.FIREBASE_PROJECT_ID,
+    })
+  );
+}
+export async function verify(token: string): Promise<string> {
+  const a = app();
+  try {
+    return (await getAuth(a).verifyIdToken(token, true)).uid;
+  } catch {
+    throw new Problem(401, "Sesión inválida. Vuelve a iniciar sesión.");
+  }
+}
+export interface Store {
+  read(uid: string): Promise<Account>;
+  change<T>(uid: string, fn: (account: Account) => T): Promise<T>;
+}
+export const store: Store = {
+  async read(uid) {
+    const snapshot = await getFirestore(app())
+      .collection("cineflowUsers")
+      .doc(uid)
+      .get();
+    return snapshot.exists ? (snapshot.data() as Account) : emptyAccount();
+  },
+  async change(uid, fn) {
+    const db = getFirestore(app());
+    const ref = db.collection("cineflowUsers").doc(uid);
+    return db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const state = snap.exists ? (snap.data() as Account) : emptyAccount();
+      const result = fn(state);
+      if (Buffer.byteLength(JSON.stringify(state)) > 400000)
+        throw new Problem(
+          409,
+          "La cuenta alcanzó el límite de esta versión educativa",
+        );
+      tx.set(ref, state);
+      return result;
+    });
+  },
+};
+```
 
-Para cada operación privada resolver primero users/{uid}; después profiles/{profileId} bajo ese usuario. Perfil ajeno e inexistente devuelven el mismo 404. Las reglas de Firestore no protegen Admin SDK: las comprobaciones de API son obligatorias.
+## Paso 3 — Catálogo demo y TMDB
 
-El registro y login se realizan con SDK Auth del cliente. No crear POST /login que guarde contraseñas ni tokens propios. El backend completo incluye integración con Auth y revocación global; el cliente aporta las pantallas después.
+`catalog.ts` usa tres títulos inventados mientras CATALOG_MODE=demo. Cuando lo cambies a tmdb, usará el token del servidor. No pegues tokens en este archivo.
 
-## 4. Módulo me
+### Archivo: `apps/api/src/catalog.ts`
 
-Crear me.routes.ts, me.controller.ts, me.service.ts y me.repository.ts. PUT /me inicia transacción: si usuario no existe, crear users/{uid} con profileCount=1 y perfil main; si existe, devolver sin sobrescribir preferencias. Obtener nombre/email de Auth cuando corresponda; valor inicial del nombre: displayName de Auth o “Mi cuenta”. Perfil main se llama “Principal”.
+**Acción:** crear el archivo si no existe; si existe, reemplazar TODO su contenido por lo siguiente. Guardar antes de continuar.
 
-No hay transacción distribuida entre Auth y Firestore. Si Auth crea identidad y Firestore falla, UI informa que la cuenta existe y reintenta PUT /me; no vuelve a registrarla. PATCH sólo cambia displayName/locale permitidos. POST revoke-sessions valida auth_time, revoca refresh tokens y devuelve 204; luego web llama signOut.
+```ts
+import { z } from "zod";
+import { Problem, type Media, type Kind, type Video } from "./model.js";
+export interface Catalog {
+  list(type: Kind, q: string, page: number): Promise<Media[]>;
+  detail(type: Kind, id: number): Promise<Media>;
+  videos(type: Kind, id: number): Promise<Video[]>;
+}
+const demos: Media[] = [
+  {
+    id: 900001,
+    type: "movie",
+    title: "Órbita Azul",
+    overview: "Una tripulación busca un nuevo hogar entre las estrellas.",
+    poster: null,
+  },
+  {
+    id: 900002,
+    type: "movie",
+    title: "La Última Estación",
+    overview: "Dos viajeros coinciden al final de una larga ruta.",
+    poster: null,
+  },
+  {
+    id: 900003,
+    type: "tv",
+    title: "Código Aurora",
+    overview: "Un equipo investiga señales que nadie puede explicar.",
+    poster: null,
+  },
+];
+const rawMedia = z.object({
+  id: z.number(),
+  title: z.string().optional(),
+  name: z.string().optional(),
+  overview: z.string().optional(),
+  poster_path: z.string().nullable().optional(),
+});
+function normalize(value: unknown, type: Kind): Media {
+  const m = rawMedia.parse(value);
+  return {
+    id: m.id,
+    type,
+    title: (m.title ?? m.name ?? "Sin título").slice(0, 120),
+    overview: (m.overview ?? "Sin sinopsis").slice(0, 3000),
+    poster: m.poster_path
+      ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
+      : null,
+  };
+}
+async function request(
+  path: string,
+  params: Record<string, string> = {},
+): Promise<unknown> {
+  const token = process.env.TMDB_READ_ACCESS_TOKEN;
+  if (!token) throw new Problem(503, "Falta el token de TMDB en el backend");
+  const url = new URL(`https://api.themoviedb.org/3/${path}`);
+  url.search = new URLSearchParams({
+    language: "es-MX",
+    include_adult: "false",
+    ...params,
+  }).toString();
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (res.status === 404) throw new Problem(404, "Título no encontrado");
+    if (!res.ok)
+      throw new Problem(
+        503,
+        "El catálogo no está disponible. Intenta más tarde.",
+      );
+    return await res.json();
+  } catch (e) {
+    if (e instanceof Problem) throw e;
+    throw new Problem(503, "No se pudo conectar con TMDB");
+  }
+}
+export function makeCatalog(mode: "demo" | "tmdb"): Catalog {
+  return {
+    async list(type, q, page) {
+      if (mode === "demo")
+        return page === 1
+          ? demos.filter(
+              (m) =>
+                m.type === type &&
+                m.title.toLowerCase().includes(q.toLowerCase()),
+            )
+          : [];
+      const result = z
+        .object({ results: z.array(z.unknown()) })
+        .parse(
+          await request(q ? `search/${type}` : `${type}/popular`, {
+            query: q,
+            page: String(page),
+          }),
+        );
+      return result.results.map((m) => normalize(m, type));
+    },
+    async detail(type, id) {
+      if (mode === "demo") {
+        const m = demos.find((m) => m.type === type && m.id === id);
+        if (!m) throw new Problem(404, "Título no encontrado");
+        return m;
+      }
+      return normalize(await request(`${type}/${id}`), type);
+    },
+    async videos(type, id) {
+      if (mode === "demo") return [];
+      const schema = z.object({
+        results: z.array(
+          z.object({
+            key: z.string(),
+            name: z.string(),
+            site: z.string(),
+            type: z.string(),
+          }),
+        ),
+      });
+      for (const language of ["es-MX", "en-US"]) {
+        const response = schema.parse(
+          await request(`${type}/${id}/videos`, { language }),
+        );
+        const videos = response.results.filter(
+          (v) =>
+            v.site === "YouTube" &&
+            v.type === "Trailer" &&
+            /^[\w-]{11}$/.test(v.key),
+        );
+        if (videos.length)
+          return videos.map((v) => ({ id: v.key, title: v.name }));
+      }
+      return [];
+    },
+  };
+}
+```
 
-## 5. Perfiles y eliminación
+## Paso 4 — Rutas HTTP
 
-Crear/contar perfiles en transacción sobre documento usuario para impedir que dos peticiones concurrentes excedan cinco. Avatar se elige de avatar-01 a avatar-08, recursos locales sin subida. main no se borra.
+`app.ts` conecta las validaciones con los datos. El uid se obtiene del ID token, nunca del body del usuario. Por eso cada cuenta recibe su propia información.
 
-Al borrar un perfil secundario: transacción marca status=deleting. Todas las mutations de favoritos/historial deben leer ese documento dentro de su propia transacción para bloquear escrituras concurrentes cuando cambia el estado. Borrar subcolecciones por lotes de tamaño acotado (por ejemplo 200), luego transacción borra el padre y decrementa profileCount sólo si todavía existe. Decrementar una sola vez. Si falla la limpieza, devolver error y permitir reintentar DELETE; GET /profiles excluye deleting. No permitir crear perfiles extra contando uno que todavía está eliminándose.
+### Archivo: `apps/api/src/app.ts`
 
-Esta secuencia evita datos huérfanos y una eliminación aparente. No existe borrado en cascada automático de subcolecciones al borrar el documento padre.
+**Acción:** crear el archivo si no existe; si existe, reemplazar TODO su contenido por lo siguiente. Guardar antes de continuar.
 
-## 6. Adaptador TMDB
+```ts
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
+import { randomUUID } from "node:crypto";
+import { z } from "zod";
+import {
+  addProfile,
+  mediaSchema,
+  nameSchema,
+  Problem,
+  profileOf,
+  progressSchema,
+  saveHistory,
+  type Media,
+} from "./model.js";
+import type { Store } from "./store.js";
+import type { Catalog } from "./catalog.js";
+export function createApp(deps: {
+  store: Store;
+  verify: (token: string) => Promise<string>;
+  catalog: Catalog;
+  origin: string;
+}) {
+  const app = express();
+  app.disable("x-powered-by");
+  app.use(helmet());
+  app.use(cors({ origin: deps.origin }));
+  app.use(express.json({ limit: "8kb" }));
+  app.use(
+    rateLimit({
+      windowMs: 60000,
+      limit: 120,
+      standardHeaders: "draft-8",
+      legacyHeaders: false,
+    }),
+  );
+  app.get("/health", (_req, res) => res.json({ ok: true }));
+  app.get("/api/catalog", async (req, res) => {
+    const query = z
+      .object({
+        type: z.enum(["movie", "tv"]).default("movie"),
+        q: z.string().trim().max(100).default(""),
+        page: z.coerce.number().int().min(1).max(500).default(1),
+      })
+      .parse(req.query);
+    res.json({
+      data: await deps.catalog.list(query.type, query.q, query.page),
+    });
+  });
+  app.get("/api/catalog/:type/:id", async (req, res) => {
+    const m = mediaSchema.parse(req.params);
+    res.json({ data: await deps.catalog.detail(m.type, m.id) });
+  });
+  app.get("/api/catalog/:type/:id/videos", async (req, res) => {
+    const m = mediaSchema.parse(req.params);
+    res.json({ data: await deps.catalog.videos(m.type, m.id) });
+  });
+  app.use("/api", async (req, res, next) => {
+    const token = req.headers.authorization?.match(/^Bearer (.+)$/)?.[1];
+    if (!token) throw new Problem(401, "Inicia sesión");
+    res.locals.uid = await deps.verify(token);
+    next();
+  });
+  app.put("/api/me", async (_req, res) =>
+    res.json({ data: await deps.store.change(res.locals.uid, (a) => a) }),
+  );
+  app.get("/api/me", async (_req, res) =>
+    res.json({ data: await deps.store.read(res.locals.uid) }),
+  );
+  app.patch("/api/me", async (req, res) => {
+    const { name } = nameSchema.parse(req.body);
+    res.json({
+      data: await deps.store.change(res.locals.uid, (a) => {
+        a.name = name;
+        return a;
+      }),
+    });
+  });
+  app.post("/api/profiles", async (req, res) => {
+    const { name } = nameSchema.parse(req.body);
+    const id = randomUUID();
+    res.status(201).json({
+      data: await deps.store.change(res.locals.uid, (a) => {
+        addProfile(a, id, name);
+        return a;
+      }),
+    });
+  });
+  app.patch("/api/profiles/:profileId", async (req, res) => {
+    const { name } = nameSchema.parse(req.body);
+    res.json({
+      data: await deps.store.change(res.locals.uid, (a) => {
+        profileOf(a, String(req.params.profileId)).name = name;
+        return a;
+      }),
+    });
+  });
+  app.delete("/api/profiles/:profileId", async (req, res) => {
+    await deps.store.change(res.locals.uid, (a) => {
+      const p = profileOf(a, String(req.params.profileId));
+      if (p.id === "main")
+        throw new Problem(409, "El perfil principal no se puede borrar");
+      a.profiles = a.profiles.filter((v) => v.id !== p.id);
+    });
+    res.status(204).end();
+  });
+  function compact(m: Media): Media {
+    return { ...m, overview: "" };
+  }
+  app.put("/api/profiles/:profileId/favorites/:type/:id", async (req, res) => {
+    const m = mediaSchema.parse(req.params);
+    const id = String(req.params.profileId);
+    profileOf(await deps.store.read(res.locals.uid), id);
+    const media = compact(await deps.catalog.detail(m.type, m.id));
+    await deps.store.change(res.locals.uid, (a) => {
+      const p = profileOf(a, id);
+      const key = `${m.type}_${m.id}`;
+      if (!p.favorites[key] && Object.keys(p.favorites).length >= 50)
+        throw new Problem(409, "Máximo 50 favoritos por perfil");
+      p.favorites[key] ??= { media, addedAt: new Date().toISOString() };
+    });
+    res.json({ data: { saved: true } });
+  });
+  app.delete(
+    "/api/profiles/:profileId/favorites/:type/:id",
+    async (req, res) => {
+      const m = mediaSchema.parse(req.params);
+      await deps.store.change(res.locals.uid, (a) => {
+        delete profileOf(a, String(req.params.profileId)).favorites[
+          `${m.type}_${m.id}`
+        ];
+      });
+      res.status(204).end();
+    },
+  );
+  app.put("/api/profiles/:profileId/history/:type/:id", async (req, res) => {
+    const m = mediaSchema.parse(req.params);
+    const input = progressSchema.parse(req.body);
+    const id = String(req.params.profileId);
+    profileOf(await deps.store.read(res.locals.uid), id);
+    if (
+      !(await deps.catalog.videos(m.type, m.id)).some(
+        (v) => v.id === input.videoId,
+      )
+    )
+      throw new Problem(400, "El video no pertenece al título");
+    const media = compact(await deps.catalog.detail(m.type, m.id));
+    res.json({
+      data: await deps.store.change(res.locals.uid, (a) =>
+        saveHistory(profileOf(a, id), media, input),
+      ),
+    });
+  });
+  app.delete("/api/profiles/:profileId/history/:key", async (req, res) => {
+    const key = z
+      .string()
+      .regex(/^(movie|tv)_\d+_[\w-]{11}$/)
+      .parse(req.params.key);
+    await deps.store.change(res.locals.uid, (a) => {
+      delete profileOf(a, String(req.params.profileId)).history[key];
+    });
+    res.status(204).end();
+  });
+  app.use((_req, _res, next) => next(new Problem(404, "Ruta no encontrada")));
+  app.use(
+    (
+      error: unknown,
+      _req: express.Request,
+      res: express.Response,
+      _next: express.NextFunction,
+    ) => {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Revisa los datos enviados" });
+        return;
+      }
+      if (error instanceof SyntaxError && "body" in error) {
+        res.status(400).json({ error: "JSON inválido" });
+        return;
+      }
+      const status = error instanceof Problem ? error.status : 500;
+      if (status === 500)
+        console.error(
+          "Error interno de la API; revisa la configuración de Firebase y sus permisos.",
+        );
+      res
+        .status(status)
+        .json({
+          error:
+            error instanceof Problem
+              ? error.message
+              : "Error interno del servidor",
+        });
+    },
+  );
+  return app;
+}
+```
 
-Construir métodos home, discover, search, genres, detail y videos. Usar host fijo y rutas permitidas, encodeURIComponent para query, timeout de 8 s con AbortController. Nunca aceptar URLs suministradas por el usuario.
+## Paso 5 — Arranque
 
-Cache en memoria acotada a 500 entradas: listas 5 minutos, detalle/videos 15 minutos. Clave incluye endpoint, parámetros normalizados e idioma. Sólo cachear respuestas válidas, nunca datos privados ni errores de credenciales. En despliegue de una instancia esta cache es suficiente; múltiples instancias requieren revisar presupuesto de solicitudes.
+`server.ts` lee las variables y abre el puerto. El mensaje de terminal indica si está usando demo o TMDB.
 
-Ante 429 respetar Retry-After y responder estado controlado; no hacer reintentos ilimitados. Un fallo parcial en home deja fila vacía con mensaje de indisponibilidad identificado, o falla toda la respuesta de forma documentada; v1 adopta fallo total 503 para simplificar el contrato. Las demás páginas siguen siendo accesibles.
+### Archivo: `apps/api/src/server.ts`
 
-Normalizar DTO, filtrar personas en búsquedas mixtas, no emitir tarjetas sin id/mediaType. Videos: sólo YouTube, priorizar Trailer y official, español y después inglés; si no hay, devolver []. No garantizar inserción: YouTube puede rechazarla al reproducir. Imágenes null se conservan, no se inventan paths.
+**Acción:** crear el archivo si no existe; si existe, reemplazar TODO su contenido por lo siguiente. Guardar antes de continuar.
 
-## 7. Favoritos
+```ts
+import "dotenv/config";
+import { z } from "zod";
+import { createApp } from "./app.js";
+import { makeCatalog } from "./catalog.js";
+import { store, verify } from "./store.js";
+const env = z
+  .object({
+    PORT: z.coerce.number().default(4000),
+    CORS_ORIGIN: z.string().url().default("http://localhost:5173"),
+    CATALOG_MODE: z.enum(["demo", "tmdb"]).default("demo"),
+  })
+  .parse(process.env);
+if (process.env.NODE_ENV === "production" && env.CATALOG_MODE !== "tmdb")
+  throw new Error("Producción requiere CATALOG_MODE=tmdb");
+createApp({
+  store,
+  verify,
+  catalog: makeCatalog(env.CATALOG_MODE),
+  origin: env.CORS_ORIGIN,
+}).listen(env.PORT, () =>
+  console.log(
+    `CineFlow API: http://localhost:${env.PORT} — catálogo ${env.CATALOG_MODE}`,
+  ),
+);
+```
 
-Crear documentos con clave determinista movie_ID/tv_ID. Para primer alta obtener snapshot validado del catálogo fuera de la transacción; luego transacción comprueba perfil activo y existencia del favorito. Si ya existe, conservar addedAt y devolver el existente. Repeticiones concurrentes generan un documento.
+## Paso 6 — Comprobar
 
-GET individual comprueba perfil activo y busca la clave determinista, devolviendo DTO o 404; evita recorrer páginas para conocer pertenencia. DELETE comprueba perfil activo y elimina idempotentemente. GET usa snapshots almacenados, paginación y timestamps serializados. No sincronizar todas las imágenes consultando TMDB por cada tarjeta; un snapshot puede quedar anticuado, detalle siempre consulta el adaptador vigente.
+Terminal en `cineflow-v2`:
 
-## 8. Historial y progreso
+```bash
+npm run typecheck
+npm run dev
+```
 
-Verificar asociación video/título mediante catálogo antes de aceptar nuevo historial. En transacción leer perfil activo, registro de historial y, si existe, su version. Validar expectedVersion, actualizar campos y serverTimestamp e incrementar version. DTO devuelto después de resolver timestamp.
+Mantén la terminal abierta. `npm run dev` inicia backend y frontend juntos. No abras otro proceso en el mismo puerto.
 
-Guardar cada 15 segundos de reproducción activa y al pausar/finalizar desde web. No guardar cada frame. Un intervalo por player, cleanup al desmontar. La API es autoridad sobre completed, timestamps y version; duración/posición reportadas por cliente se validan pero no son prueba de consumo real ni sirven para premios/pagos.
+Abre estas direcciones en el navegador:
 
-GET devuelve historial paginado. Borrar elemento es idempotente. Para limpiar historial entero exigir que UI detenga player primero; API usa profile.historyEpoch interno: cada mutation de progreso lee epoch en transacción, limpieza incrementa epoch y borra registros de épocas anteriores. Nuevos eventos después del inicio de limpieza pertenecen al epoch nuevo y se conservan. El filtrado/listado debe limitarse al epoch actual. Este campo es interno y no lo decide el cliente. El borrado físico de registros anteriores es reintentable.
+1. http://localhost:4000/health → debe devolver `{"ok":true}`.
+2. http://localhost:4000/api/catalog?type=movie → aparecen Órbita Azul y La Última Estación.
+3. http://localhost:4000/api/catalog?type=tv → aparece Código Aurora.
+4. http://localhost:5173 → la pantalla mínima sigue visible.
 
-## 9. Seguridad operativa
+Si `/api/me` devuelve 401 en el navegador, es correcto: esa ruta exige iniciar sesión. Si falla el import de un archivo, revisa su nombre exacto y que hayas guardado TODOS los archivos. En TypeScript del backend los imports relativos usan extensión `.js`, aunque el archivo fuente sea `.ts`; es intencional para Node ESM.
 
-Política inicial elegida: catálogo 120 requests/min/IP, privado 120/min/uid, progreso 20/min/uid. Responder 429 con Retry-After. Rate limiter de memoria sólo garantiza límites en una instancia; producción con réplicas necesita almacenamiento compartido. CORS no es autenticación.
+## Paso 7 — Agregar las pruebas del backend
 
-No aceptar roles, uid, emailVerified, addedAt, lastPlayedAt ni campos internos del body. Recortar textos y límites. CSP de API para docs debe permitir los assets necesarios sólo cuando docs habilitado. La CSP de la web se define aparte para imágenes TMDB y YouTube.
+El siguiente archivo no cambia las rutas. Usa datos en memoria sólo dentro de las pruebas; el servidor normal continúa usando Firebase para cuentas.
 
-## 10. Fixtures y seed
+### Archivo: `apps/api/tests/api.test.ts`
 
-CATALOG_MODE=fixture implementa la misma interfaz del adaptador sin red. Datos inventados: movie 900001 “Órbita Azul”, género 878, año 2025; movie 900002 “La Última Estación”, género 18, año 2024; tv 900003 “Código Aurora”, género 9648, año 2026. Imágenes null, overview de una frase inventada, rating 7.5, 8.0 y null respectivamente; videos [] por defecto.
+**Acción:** crear el archivo si no existe; si existe, reemplazar TODO su contenido por lo siguiente. Guardar antes de continuar.
 
-Seed sólo funciona con emuladores y demo-cineflow. Crear dos identidades de prueba ana@example.test y bruno@example.test con contraseña local CineFlowDemo2026!, documentos y perfiles main usando lógica de provisionamiento. Repetir seed no duplica ni elimina datos existentes. Esas credenciales son exclusivas del emulador y nunca se despliegan.
+```ts
+import test from "node:test";
+import assert from "node:assert/strict";
+import request from "supertest";
+import { createApp } from "../src/app.js";
+import { makeCatalog } from "../src/catalog.js";
+import { emptyAccount, Problem, type Account } from "../src/model.js";
+import type { Store } from "../src/store.js";
+function setup() {
+  const db = new Map<string, Account>();
+  const store: Store = {
+    async read(uid) {
+      return structuredClone(db.get(uid) ?? emptyAccount());
+    },
+    async change(uid, fn) {
+      const a = structuredClone(db.get(uid) ?? emptyAccount());
+      const result = fn(a);
+      db.set(uid, a);
+      return result;
+    },
+  };
+  const catalog = makeCatalog("demo");
+  catalog.videos = async () => [
+    { id: "abcdefghijk", title: "Video de prueba" },
+  ];
+  const app = createApp({
+    store,
+    catalog,
+    origin: "http://localhost:5173",
+    verify: async (token) => {
+      if (!["ana", "bruno"].includes(token)) throw new Problem(401, "Inválido");
+      return token;
+    },
+  });
+  return request(app);
+}
+test("catálogo demo y errores HTTP", async () => {
+  const api = setup();
+  await api.get("/health").expect(200);
+  const result = await api.get("/api/catalog?type=movie").expect(200);
+  assert.equal(result.body.data.length, 2);
+  await api.get("/api/catalog?type=other").expect(400);
+  await api.get("/api/catalog/movie/1").expect(404);
+  await api.get("/api/me").expect(401);
+  await api.get("/api/me").set("Authorization", "Bearer invalid").expect(401);
+});
+test("provisión idempotente, favoritos y aislamiento entre cuentas", async () => {
+  const api = setup();
+  for (let i = 0; i < 2; i++)
+    await api
+      .put("/api/me")
+      .set("Authorization", "Bearer ana")
+      .send({})
+      .expect(200);
+  for (let i = 0; i < 2; i++)
+    await api
+      .put("/api/profiles/main/favorites/movie/900001")
+      .set("Authorization", "Bearer ana")
+      .send({})
+      .expect(200);
+  const a = await api
+    .get("/api/me")
+    .set("Authorization", "Bearer ana")
+    .expect(200);
+  assert.equal(a.body.data.profiles.length, 1);
+  assert.equal(Object.keys(a.body.data.profiles[0].favorites).length, 1);
+  const b = await api
+    .get("/api/me")
+    .set("Authorization", "Bearer bruno")
+    .expect(200);
+  assert.equal(Object.keys(b.body.data.profiles[0].favorites).length, 0);
+  await api
+    .put("/api/profiles/ajeno/favorites/movie/900001")
+    .set("Authorization", "Bearer bruno")
+    .send({})
+    .expect(404);
+});
+test("límite de perfiles, renombrar, borrar dependencias", async () => {
+  const api = setup();
+  let id = "";
+  for (let i = 0; i < 4; i++) {
+    const res = await api
+      .post("/api/profiles")
+      .set("Authorization", "Bearer ana")
+      .send({ name: `Perfil ${i}` })
+      .expect(201);
+    id = res.body.data.profiles.at(-1).id;
+  }
+  await api
+    .post("/api/profiles")
+    .set("Authorization", "Bearer ana")
+    .send({ name: "Sexto" })
+    .expect(409);
+  await api
+    .patch(`/api/profiles/${id}`)
+    .set("Authorization", "Bearer ana")
+    .send({ name: "Nuevo" })
+    .expect(200);
+  await api
+    .put(`/api/profiles/${id}/favorites/movie/900001`)
+    .set("Authorization", "Bearer ana")
+    .send({})
+    .expect(200);
+  await api
+    .delete(`/api/profiles/${id}`)
+    .set("Authorization", "Bearer ana")
+    .expect(204);
+  await api
+    .delete("/api/profiles/main")
+    .set("Authorization", "Bearer ana")
+    .expect(409);
+  const res = await api
+    .get("/api/me")
+    .set("Authorization", "Bearer ana")
+    .expect(200);
+  assert.equal(res.body.data.profiles.length, 4);
+  assert.ok(!res.body.data.profiles.find((p: { id: string }) => p.id === id));
+});
+test("historial: validación, versión, reinicio y eliminación", async () => {
+  const api = setup(),
+    url = "/api/profiles/main/history/movie/900001";
+  const body = {
+    videoId: "abcdefghijk",
+    position: 30,
+    duration: 100,
+    version: 0,
+  };
+  let res = await api
+    .put(url)
+    .set("Authorization", "Bearer ana")
+    .send(body)
+    .expect(200);
+  assert.equal(res.body.data.version, 1);
+  await api.put(url).set("Authorization", "Bearer ana").send(body).expect(409);
+  await api
+    .put(url)
+    .set("Authorization", "Bearer ana")
+    .send({ ...body, version: 1, position: 101 })
+    .expect(400);
+  res = await api
+    .put(url)
+    .set("Authorization", "Bearer ana")
+    .send({ ...body, version: 1, position: 100 })
+    .expect(200);
+  assert.equal(res.body.data.completed, true);
+  res = await api
+    .put(url)
+    .set("Authorization", "Bearer ana")
+    .send({ ...body, version: 2, position: 0 })
+    .expect(200);
+  assert.equal(res.body.data.completed, false);
+  await api
+    .delete("/api/profiles/main/history/movie_900001_abcdefghijk")
+    .set("Authorization", "Bearer ana")
+    .expect(204);
+});
+```
 
-Para pruebas de player usar un adaptador simulado del reproductor que emita eventos, sin necesidad de un video externo. Para la prueba manual real obtener un video actual mediante /videos; los IDs pueden dejar de estar disponibles.
+En otra terminal desde la raíz ejecuta:
 
-## 11. Verificación B0
+```bash
+npm test
+```
 
-Implementar pruebas de 17 antes de declarar listo. Swagger permite explorar rutas mientras el front aún no existe. Crear script de prueba que use SDK cliente Auth conectado al emulador, acceda como Ana, obtenga getIdToken y llame PUT /me; no incluir tokens persistentes en archivos.
+Deben pasar cuatro grupos de pruebas: catálogo, favoritos/aislamiento, perfiles e historial. No prueba tu cuenta real de Firebase ni videos de YouTube. Esas verificaciones se hacen al configurar los servicios.
 
-Ejecutar build de contracts, typecheck/lint de API, tests contra emuladores y smoke de catálogo real con credencial local. Documentar cada resultado real en docs/validacion-b0.md; si falta credencial, registrar “smoke TMDB pendiente”, no “todo verde”. Crear tag backend-v1.0 sólo tras cumplir gates. Las ocho etapas frontend consumen este mismo contrato.
+**Listo:** el backend queda completo para todas las etapas del frontend de esta guía. El botón Siguiente lleva a la interfaz.
 
 ---
 
 <!-- navigation:start -->
 
-[← Anterior](./04-contrato-api.md) | [Índice del proyecto](./README.md) | [Siguiente →](./06-firestore-modelo-reglas.md)
+[← Anterior](./02-instalacion-monorepo.md) | [Índice CineFlow](./README.md) | [Siguiente →](./09-frontend-etapa-01.md)
 
 [🏠 Índice general](../../README.md)
 

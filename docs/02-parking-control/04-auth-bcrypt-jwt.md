@@ -1,4 +1,13 @@
 # ParkingFlow — Sesión 04
+
+<!-- navigation:start -->
+
+[← Anterior](./03-firestore-parking-spaces.md) | [Índice del proyecto](./README.md) | [Siguiente →](./05-checkin-parking-session.md)
+
+[🏠 Índice general](../../README.md)
+
+<!-- navigation:end -->
+
 ## Usuarios + bcryptjs + JWT access/refresh + roles
 
 ---
@@ -535,4 +544,12 @@ git commit -m "feat: add bcrypt and JWT authentication"
 
 ---
 
-[← Regresar al índice](./README.md)
+---
+
+<!-- navigation:start -->
+
+[← Anterior](./03-firestore-parking-spaces.md) | [Índice del proyecto](./README.md) | [Siguiente →](./05-checkin-parking-session.md)
+
+[🏠 Índice general](../../README.md)
+
+<!-- navigation:end -->

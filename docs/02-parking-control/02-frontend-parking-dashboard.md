@@ -1,4 +1,13 @@
 # ParkingFlow — Sesión 02
+
+<!-- navigation:start -->
+
+[← Anterior](./01-foundation-monorepo-nuxt-express.md) | [Índice del proyecto](./README.md) | [Siguiente →](./03-firestore-parking-spaces.md)
+
+[🏠 Índice general](../../README.md)
+
+<!-- navigation:end -->
+
 ## Dashboard Nuxt 4: componentes, estructuras y datos mock
 
 ---
@@ -372,4 +381,12 @@ git commit -m "feat: add parking dashboard with reusable components"
 
 ---
 
-[← Regresar al índice](./README.md)
+---
+
+<!-- navigation:start -->
+
+[← Anterior](./01-foundation-monorepo-nuxt-express.md) | [Índice del proyecto](./README.md) | [Siguiente →](./03-firestore-parking-spaces.md)
+
+[🏠 Índice general](../../README.md)
+
+<!-- navigation:end -->

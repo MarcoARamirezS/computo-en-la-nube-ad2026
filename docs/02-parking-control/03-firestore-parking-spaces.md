@@ -1,4 +1,13 @@
 # ParkingFlow — Sesión 03
+
+<!-- navigation:start -->
+
+[← Anterior](./02-frontend-parking-dashboard.md) | [Índice del proyecto](./README.md) | [Siguiente →](./04-auth-bcrypt-jwt.md)
+
+[🏠 Índice general](../../README.md)
+
+<!-- navigation:end -->
+
 ## Firestore + API REST de cajones
 
 ---
@@ -354,4 +363,12 @@ git commit -m "feat: persist parking spaces with Firestore"
 
 ---
 
-[← Regresar al índice](./README.md)
+---
+
+<!-- navigation:start -->
+
+[← Anterior](./02-frontend-parking-dashboard.md) | [Índice del proyecto](./README.md) | [Siguiente →](./04-auth-bcrypt-jwt.md)
+
+[🏠 Índice general](../../README.md)
+
+<!-- navigation:end -->

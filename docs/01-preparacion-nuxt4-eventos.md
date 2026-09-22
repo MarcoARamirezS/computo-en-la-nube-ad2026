@@ -1,4 +1,13 @@
 # Nuxt 4 + Tailwind CSS 4
+
+<!-- navigation:start -->
+
+[← Anterior](../README.md) | [Índice del proyecto](../README.md) | [Siguiente →](./02-parking-control/README.md)
+
+[🏠 Índice general](../README.md)
+
+<!-- navigation:end -->
+
 ## Instalación, configuración y estructura inicial
 ### Preparación previa a la práctica de Componentes, Props y Eventos
 
@@ -1488,5 +1497,12 @@ Componentes + Props + Eventos
 
 Esto permite que los problemas de instalación y configuración se resuelvan antes de trabajar con la comunicación entre componentes.
 
+---
 
-[← Regresar al índice](../README.md)
+<!-- navigation:start -->
+
+[← Anterior](../README.md) | [Índice del proyecto](../README.md) | [Siguiente →](./02-parking-control/README.md)
+
+[🏠 Índice general](../README.md)
+
+<!-- navigation:end -->

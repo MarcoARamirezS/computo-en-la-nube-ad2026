@@ -1,4 +1,13 @@
 # ParkingFlow — Sesión 01
+
+<!-- navigation:start -->
+
+[← Anterior](./README.md) | [Índice del proyecto](./README.md) | [Siguiente →](./02-frontend-parking-dashboard.md)
+
+[🏠 Índice general](../../README.md)
+
+<!-- navigation:end -->
+
 ## Foundation: Monorepo + Nuxt 4 + Tailwind CSS 4 + Express 5 + pruebas
 
 ---
@@ -423,4 +432,12 @@ git commit -m "chore: initialize ParkingFlow monorepo"
 
 ---
 
-[← Regresar al índice](./README.md)
+---
+
+<!-- navigation:start -->
+
+[← Anterior](./README.md) | [Índice del proyecto](./README.md) | [Siguiente →](./02-frontend-parking-dashboard.md)
+
+[🏠 Índice general](../../README.md)
+
+<!-- navigation:end -->

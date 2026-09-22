@@ -1,4 +1,13 @@
 # ParkingFlow — Sesión 05
+
+<!-- navigation:start -->
+
+[← Anterior](./04-auth-bcrypt-jwt.md) | [Índice del proyecto](./README.md) | [Siguiente →](../03-cineflow/README.md)
+
+[🏠 Índice general](../../README.md)
+
+<!-- navigation:end -->
+
 ## Check-in: vehículos, sesiones y asignación de cajón
 
 ---
@@ -268,4 +277,12 @@ git commit -m "feat: add vehicle check-in and automatic space assignment"
 
 ---
 
-[← Regresar al índice](./README.md)
+---
+
+<!-- navigation:start -->
+
+[← Anterior](./04-auth-bcrypt-jwt.md) | [Índice del proyecto](./README.md) | [Siguiente →](../03-cineflow/README.md)
+
+[🏠 Índice general](../../README.md)
+
+<!-- navigation:end -->

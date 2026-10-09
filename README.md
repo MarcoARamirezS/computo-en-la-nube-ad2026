@@ -50,6 +50,20 @@ Clon visual de una plataforma de catálogo cinematográfico, con identidad propi
 
 ---
 
+### 04. MoneyCloud — Finanzas personales con Docker y despliegue cloud
+
+Proyecto ágil de **4 sesiones de 90 minutos**. Los estudiantes construyen una aplicación de ingresos y egresos copiando el código desde las guías Markdown: HTML5, Tailwind CSS, JavaScript, Express, Firestore, Docker, Render y Netlify.
+
+- Instalación y comandos para **macOS y Windows**.
+- Product Goal, backlog, arquitectura y contrato API.
+- Cuatro laboratorios progresivos con rutas, comandos, código y verificaciones.
+- Guía de errores frecuentes y validación final.
+- **Modalidad:** repositorio docente de guías; cada estudiante crea su aplicación en su propio repositorio.
+
+📖 [Ir al proyecto MoneyCloud](./docs/04-moneycloud/README.md) · [Preparación](./docs/04-moneycloud/docs/00-preparacion.md)
+
+---
+
 ## 📂 Estructura del repositorio
 
 ```text
@@ -64,7 +78,7 @@ Clon visual de una plataforma de catálogo cinematográfico, con identidad propi
     │   ├── 03-firestore-parking-spaces.md
     │   ├── 04-auth-bcrypt-jwt.md
     │   └── 05-checkin-parking-session.md
-    └── 03-cineflow/
+    ├── 03-cineflow/
         ├── README.md
         ├── 00-leeme.md
         ├── 01-arquitectura-y-alcance.md
@@ -87,6 +101,17 @@ Clon visual de una plataforma de catálogo cinematográfico, con identidad propi
         ├── 18-instrucciones-implementacion.md
         ├── 19-fuentes.md
         └── codigo-referencia/  # Aplicación final de apoyo
+    └── 04-moneycloud/
+        ├── README.md
+        └── docs/
+            ├── 00-preparacion.md
+            ├── 00-product-goal.md
+            ├── 01-product-backlog.md
+            ├── 02-architecture.md
+            ├── 03-api-contract.md
+            ├── 05-troubleshooting.md
+            ├── 06-validation.md
+            └── sesiones/  # 4 guías de laboratorio
 ```
 
 ---

@@ -28,21 +28,23 @@ Docker Desktop normalmente requiere WSL2; si no está instalado, abre PowerShell
 
 ## 2. Crear el repositorio en GitHub
 
-Docente: crea un repositorio llamado `moneycloud-guia` y sube **el contenido de este paquete** a su raíz. No subas la carpeta contenedora como nivel adicional. Los estudiantes pueden hacer Fork o clonar.
+Docente: este laboratorio ya forma parte de `computo-en-la-nube-ad2026`. Publica el repositorio guía y comparte su URL. **Cada estudiante debe crear un repositorio propio vacío** (por ejemplo `moneycloud-alumno`) y trabajar allí; no debe crear el código dentro de la carpeta `docs/04-moneycloud` del repositorio guía. Usa las instrucciones siguientes en su propio repositorio.
 
 **macOS:**
 ```bash
-git clone https://github.com/TU-USUARIO/moneycloud-guia.git
-cd moneycloud-guia
+git clone https://github.com/TU-USUARIO/moneycloud-alumno.git
+cd moneycloud-alumno
 code .
 ```
 **Windows PowerShell:**
 ```powershell
-git clone https://github.com/TU-USUARIO/moneycloud-guia.git
-Set-Location moneycloud-guia
+git clone https://github.com/TU-USUARIO/moneycloud-alumno.git
+Set-Location moneycloud-alumno
 code .
 ```
 Sustituye `TU-USUARIO`. Si VS Code no reconoce `code`, abre la carpeta con Archivo → Abrir carpeta.
+
+**Nota:** crea `moneycloud-alumno` en GitHub sin README inicial, o bien inicializa localmente con `git init` y conecta el remoto. Si GitHub lo crea vacío, `git clone` mostrará un aviso normal.
 
 ## 3. Reglas del laboratorio
 

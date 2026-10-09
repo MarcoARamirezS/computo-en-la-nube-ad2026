@@ -26,7 +26,21 @@ Crea el archivo exactamente en esa ruta y pega **todo** el siguiente contenido:
 
 ```json
 {
- "name":"moneycloud","private":true,"workspaces":["apps/*"],"scripts":{"dev:api":"npm run dev -w @moneycloud/api","dev:web":"npm run dev -w @moneycloud/web","test":"npm run test -w @moneycloud/api","build":"npm run build -w @moneycloud/web"},"engines":{"node":">=22"}}
+  "name": "moneycloud",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w @moneycloud/api",
+    "dev:web": "npm run dev -w @moneycloud/web",
+    "test": "npm run test -w @moneycloud/api",
+    "build": "npm run build -w @moneycloud/web"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
 ```
 
 ### Archivo: `apps/web/package.json`
@@ -34,7 +48,21 @@ Crea el archivo exactamente en esa ruta y pega **todo** el siguiente contenido:
 Crea el archivo exactamente en esa ruta y pega **todo** el siguiente contenido:
 
 ```json
-{"name":"@moneycloud/web","version":"1.0.0","type":"module","scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","preview":"vite preview"},"dependencies":{"tailwindcss":"^4.1.0","@tailwindcss/vite":"^4.1.0","vite":"^6.2.0"}}
+{
+  "name": "@moneycloud/web",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "tailwindcss": "^4.1.0",
+    "@tailwindcss/vite": "^4.1.0",
+    "vite": "^6.2.0"
+  }
+}
 ```
 
 ### Archivo: `apps/web/index.html`
@@ -42,7 +70,18 @@ Crea el archivo exactamente en esa ruta y pega **todo** el siguiente contenido:
 Crea el archivo exactamente en esa ruta y pega **todo** el siguiente contenido:
 
 ```html
-<!doctype html><html lang="es"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>MoneyCloud | Finanzas</title></head><body class="bg-slate-50 text-slate-900"><div id="app"></div><script type="module" src="/src/main.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MoneyCloud | Finanzas</title>
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
 ```
 
 ### Archivo: `apps/web/vite.config.js`
@@ -52,7 +91,10 @@ Crea el archivo exactamente en esa ruta y pega **todo** el siguiente contenido:
 ```javascript
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
-export default defineConfig({plugins:[tailwindcss()]});
+
+export default defineConfig({
+  plugins: [tailwindcss()],
+});
 ```
 
 ### Archivo: `apps/web/src/style.css`
@@ -69,19 +111,198 @@ Crea el archivo exactamente en esa ruta y pega **todo** el siguiente contenido:
 
 ```javascript
 import './style.css';
-const api=(import.meta.env.VITE_API_URL||'http://localhost:3001').replace(/\/$/,'');
-const $=(id)=>document.getElementById(id);
-const money=(c)=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(c/100);
-const escapeHtml=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function request(path,opts={}){const res=await fetch(api+path,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});if(!res.ok)throw new Error('Error HTTP '+res.status);return res.status===204?null:res.json();}
-$('app').innerHTML=`<main class="mx-auto max-w-5xl p-5 md:p-10"><header class="mb-8"><p class="text-teal-700 font-semibold">MONEYCLOUD · LABORATORIO CLOUD</p><h1 class="text-3xl font-bold mt-2">Mis finanzas</h1><p class="text-slate-500">Demo académica. No introduzcas datos financieros reales.</p></header><div id="error" role="alert" class="hidden rounded bg-red-100 p-3 text-red-900 mb-5"></div><section class="grid gap-4 md:grid-cols-3 mb-8"><article class="rounded-xl bg-white p-5 shadow-sm"><p>Ingresos</p><strong id="income" class="text-2xl text-teal-700">—</strong></article><article class="rounded-xl bg-white p-5 shadow-sm"><p>Egresos</p><strong id="expense" class="text-2xl text-rose-700">—</strong></article><article class="rounded-xl bg-slate-900 p-5 text-white"><p>Balance</p><strong id="balance" class="text-2xl">—</strong></article></section><section class="grid gap-6 md:grid-cols-5"><form id="form" class="md:col-span-2 rounded-xl bg-white p-5 shadow-sm space-y-4"><h2 class="font-bold text-xl">Nuevo movimiento</h2><label class="block">Tipo<select id="type" class="block w-full border rounded p-2 mt-1"><option value="income">Ingreso</option><option value="expense">Egreso</option></select></label><label class="block">Descripción<input id="description" required minlength="2" maxlength="100" class="block w-full border rounded p-2 mt-1" placeholder="Ej. Transporte"/></label><label class="block">Categoría<input id="category" required minlength="2" maxlength="40" class="block w-full border rounded p-2 mt-1" placeholder="Ej. Escuela"/></label><label class="block">Monto (MXN)<input id="amount" type="number" min="0.01" max="1000000" step="0.01" required class="block w-full border rounded p-2 mt-1" placeholder="150.00"/></label><button class="bg-teal-700 text-white rounded px-5 py-3 w-full hover:bg-teal-800">Guardar movimiento</button></form><div class="md:col-span-3 rounded-xl bg-white p-5 shadow-sm"><div class="flex items-center justify-between gap-3 mb-4"><h2 class="font-bold text-xl">Movimientos</h2><select id="filter" aria-label="Filtrar movimientos" class="border rounded p-2"><option value="all">Todos</option><option value="income">Ingresos</option><option value="expense">Egresos</option></select></div><div id="list" class="space-y-3">Cargando...</div></div></section></main>`;
-let transactions=[];
-function showError(message){$('error').textContent=message;$('error').classList.remove('hidden');}
-function render(){const selected=$('filter').value;const items=transactions.filter(t=>selected==='all'||t.type===selected);$('list').innerHTML=items.length?items.map(t=>`<article class="flex items-center justify-between gap-2 border-b pb-3"><div><p class="font-semibold">${escapeHtml(t.description)}</p><p class="text-xs text-slate-500">${escapeHtml(t.category)} · ${escapeHtml(t.createdAt.slice(0,10))}</p></div><div class="text-right"><p class="font-bold ${t.type==='income'?'text-teal-700':'text-rose-700'}">${t.type==='income'?'+':'−'}${money(t.amountCents)}</p><button class="delete text-xs underline" data-id="${t.id}">Eliminar</button></div></article>`).join(''):'<p class="text-slate-500">Sin movimientos</p>';}
-async function refresh(){try{const [list,summary]=await Promise.all([request('/api/v1/transactions'),request('/api/v1/summary')]);transactions=list.data;$('income').textContent=money(summary.data.incomeCents);$('expense').textContent=money(summary.data.expenseCents);$('balance').textContent=money(summary.data.balanceCents);render();$('error').classList.add('hidden');}catch(e){showError('No se pudo conectar con la API: '+e.message);}}
-$('filter').addEventListener('change',render);
-$('form').addEventListener('submit',async(e)=>{e.preventDefault();const amount=Number($('amount').value);const amountCents=Math.round(amount*100);if(!Number.isSafeInteger(amountCents)||amountCents<=0)return showError('Monto inválido');const btn=e.target.querySelector('button');btn.disabled=true;try{await request('/api/v1/transactions',{method:'POST',body:JSON.stringify({type:$('type').value,description:$('description').value,category:$('category').value,amountCents})});e.target.reset();await refresh();}catch(err){showError('No se pudo guardar: '+err.message);}finally{btn.disabled=false;}});
-$('list').addEventListener('click',async(e)=>{const btn=e.target.closest('.delete');if(!btn||!confirm('¿Eliminar este movimiento?'))return;try{await request('/api/v1/transactions/'+encodeURIComponent(btn.dataset.id),{method:'DELETE'});await refresh();}catch(err){showError('No se pudo eliminar: '+err.message);}});
+
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+const element = (id) => document.getElementById(id);
+const money = (cents) => new Intl.NumberFormat('es-MX', {
+  style: 'currency',
+  currency: 'MXN',
+}).format(cents / 100);
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[character]);
+}
+
+async function request(path, options = {}) {
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error HTTP ${response.status}`);
+  }
+  return response.status === 204 ? null : response.json();
+}
+
+element('app').innerHTML = `
+  <main class="mx-auto max-w-5xl p-5 md:p-10">
+    <header class="mb-8">
+      <p class="font-semibold text-teal-700">MONEYCLOUD · LABORATORIO CLOUD</p>
+      <h1 class="mt-2 text-3xl font-bold">Mis finanzas</h1>
+      <p class="text-slate-500">Demo académica. No introduzcas datos financieros reales.</p>
+    </header>
+
+    <div id="error" role="alert" class="mb-5 hidden rounded bg-red-100 p-3 text-red-900"></div>
+
+    <section class="mb-8 grid gap-4 md:grid-cols-3">
+      <article class="rounded-xl bg-white p-5 shadow-sm">
+        <p>Ingresos</p>
+        <strong id="income" class="text-2xl text-teal-700">—</strong>
+      </article>
+      <article class="rounded-xl bg-white p-5 shadow-sm">
+        <p>Egresos</p>
+        <strong id="expense" class="text-2xl text-rose-700">—</strong>
+      </article>
+      <article class="rounded-xl bg-slate-900 p-5 text-white">
+        <p>Balance</p>
+        <strong id="balance" class="text-2xl">—</strong>
+      </article>
+    </section>
+
+    <section class="grid gap-6 md:grid-cols-5">
+      <form id="form" class="space-y-4 rounded-xl bg-white p-5 shadow-sm md:col-span-2">
+        <h2 class="text-xl font-bold">Nuevo movimiento</h2>
+        <label class="block">Tipo
+          <select id="type" class="mt-1 block w-full rounded border p-2">
+            <option value="income">Ingreso</option>
+            <option value="expense">Egreso</option>
+          </select>
+        </label>
+        <label class="block">Descripción
+          <input id="description" required minlength="2" maxlength="100"
+            class="mt-1 block w-full rounded border p-2" placeholder="Ej. Transporte" />
+        </label>
+        <label class="block">Categoría
+          <input id="category" required minlength="2" maxlength="40"
+            class="mt-1 block w-full rounded border p-2" placeholder="Ej. Escuela" />
+        </label>
+        <label class="block">Monto (MXN)
+          <input id="amount" type="number" min="0.01" max="1000000" step="0.01" required
+            class="mt-1 block w-full rounded border p-2" placeholder="150.00" />
+        </label>
+        <button class="w-full rounded bg-teal-700 px-5 py-3 text-white hover:bg-teal-800">
+          Guardar movimiento
+        </button>
+      </form>
+
+      <div class="rounded-xl bg-white p-5 shadow-sm md:col-span-3">
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <h2 class="text-xl font-bold">Movimientos</h2>
+          <select id="filter" aria-label="Filtrar movimientos" class="rounded border p-2">
+            <option value="all">Todos</option>
+            <option value="income">Ingresos</option>
+            <option value="expense">Egresos</option>
+          </select>
+        </div>
+        <div id="list" class="space-y-3">Cargando...</div>
+      </div>
+    </section>
+  </main>
+`;
+
+let transactions = [];
+
+function showError(message) {
+  element('error').textContent = message;
+  element('error').classList.remove('hidden');
+}
+
+function render() {
+  const selected = element('filter').value;
+  const items = transactions.filter((item) => selected === 'all' || item.type === selected);
+
+  element('list').innerHTML = items.length
+    ? items.map((item) => `
+        <article class="flex items-center justify-between gap-2 border-b pb-3">
+          <div>
+            <p class="font-semibold">${escapeHtml(item.description)}</p>
+            <p class="text-xs text-slate-500">
+              ${escapeHtml(item.category)} · ${escapeHtml(item.createdAt.slice(0, 10))}
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="font-bold ${item.type === 'income' ? 'text-teal-700' : 'text-rose-700'}">
+              ${item.type === 'income' ? '+' : '−'}${money(item.amountCents)}
+            </p>
+            <button class="delete text-xs underline" data-id="${item.id}">Eliminar</button>
+          </div>
+        </article>
+      `).join('')
+    : '<p class="text-slate-500">Sin movimientos</p>';
+}
+
+async function refresh() {
+  try {
+    const [list, summary] = await Promise.all([
+      request('/api/v1/transactions'),
+      request('/api/v1/summary'),
+    ]);
+    transactions = list.data;
+    element('income').textContent = money(summary.data.incomeCents);
+    element('expense').textContent = money(summary.data.expenseCents);
+    element('balance').textContent = money(summary.data.balanceCents);
+    render();
+    element('error').classList.add('hidden');
+  } catch (error) {
+    showError(`No se pudo conectar con la API: ${error.message}`);
+  }
+}
+
+element('filter').addEventListener('change', render);
+
+element('form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const amountCents = Math.round(Number(element('amount').value) * 100);
+  if (!Number.isSafeInteger(amountCents) || amountCents <= 0) {
+    showError('Monto inválido');
+    return;
+  }
+
+  const button = event.target.querySelector('button');
+  button.disabled = true;
+  try {
+    await request('/api/v1/transactions', {
+      method: 'POST',
+      body: JSON.stringify({
+        type: element('type').value,
+        description: element('description').value,
+        category: element('category').value,
+        amountCents,
+      }),
+    });
+    event.target.reset();
+    await refresh();
+  } catch (error) {
+    showError(`No se pudo guardar: ${error.message}`);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+element('list').addEventListener('click', async (event) => {
+  const button = event.target.closest('.delete');
+  if (!button || !confirm('¿Eliminar este movimiento?')) return;
+
+  try {
+    await request(`/api/v1/transactions/${encodeURIComponent(button.dataset.id)}`, {
+      method: 'DELETE',
+    });
+    await refresh();
+  } catch (error) {
+    showError(`No se pudo eliminar: ${error.message}`);
+  }
+});
+
 refresh();
 ```
 
@@ -98,7 +319,31 @@ VITE_API_URL=http://localhost:3001
 Crea el archivo exactamente en esa ruta y pega **todo** el siguiente contenido:
 
 ```json
-{"name":"@moneycloud/api","version":"1.0.0","type":"module","scripts":{"dev":"node --watch src/server.js","start":"node src/server.js","test":"vitest run"},"dependencies":{"cors":"^2.8.5","dotenv":"^16.4.7","express":"^4.21.2","firebase-admin":"^13.0.2","helmet":"^8.0.0","zod":"^3.24.2"},"devDependencies":{"supertest":"^7.0.0","vitest":"^3.0.0"},"engines":{"node":">=22"}}
+{
+  "name": "@moneycloud/api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.0.2",
+    "helmet": "^8.0.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
 ```
 
 ### Archivo: `apps/api/src/store.js`
@@ -112,31 +357,59 @@ import { initializeApp, getApps, applicationDefault, cert } from 'firebase-admin
 
 const memory = new Map();
 const collectionName = 'moneycloud_demo_transactions';
-function db() {
+const useFirestore = () => process.env.STORAGE_DRIVER === 'firestore';
+
+function database() {
   if (!getApps().length) {
-    const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-    initializeApp({ credential: json ? cert(JSON.parse(json)) : applicationDefault(), projectId: process.env.FIREBASE_PROJECT_ID });
+    const credentials = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    initializeApp({
+      credential: credentials ? cert(JSON.parse(credentials)) : applicationDefault(),
+      projectId: process.env.FIREBASE_PROJECT_ID,
+    });
   }
   return getFirestore();
 }
-const cloud = () => process.env.STORAGE_DRIVER === 'firestore';
+
 export async function listTransactions() {
-  if (!cloud()) return [...memory.values()].sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
-  const snapshot = await db().collection(collectionName).orderBy('createdAt','desc').limit(200).get();
-  return snapshot.docs.map(doc=>doc.data());
+  if (!useFirestore()) {
+    return [...memory.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+  const snapshot = await database()
+    .collection(collectionName)
+    .orderBy('createdAt', 'desc')
+    .limit(200)
+    .get();
+  return snapshot.docs.map((document) => document.data());
 }
+
 export async function createTransaction(data) {
-  const item={ id:randomUUID(),...data,createdAt:new Date().toISOString() };
-  if (cloud()) await db().collection(collectionName).doc(item.id).set(item);
-  else memory.set(item.id,item);
+  const item = {
+    id: randomUUID(),
+    ...data,
+    createdAt: new Date().toISOString(),
+  };
+  if (useFirestore()) {
+    await database().collection(collectionName).doc(item.id).set(item);
+  } else {
+    memory.set(item.id, item);
+  }
   return item;
 }
+
 export async function deleteTransaction(id) {
-  if (!cloud()) return memory.delete(id);
-  const ref=db().collection(collectionName).doc(id);const snap=await ref.get();
-  if(!snap.exists) return false;await ref.delete();return true;
+  if (!useFirestore()) return memory.delete(id);
+
+  const reference = database().collection(collectionName).doc(id);
+  const snapshot = await reference.get();
+  if (!snapshot.exists) return false;
+
+  await reference.delete();
+  return true;
 }
-export function resetMemoryForTests(){memory.clear();}
+
+export function resetMemoryForTests() {
+  memory.clear();
+}
 ```
 
 ### Archivo: `apps/api/src/app.js`
@@ -150,18 +423,94 @@ import helmet from 'helmet';
 import { z } from 'zod';
 import { listTransactions, createTransaction, deleteTransaction } from './store.js';
 
-const schema=z.object({type:z.enum(['income','expense']),description:z.string().trim().min(2).max(100),category:z.string().trim().min(2).max(40),amountCents:z.number().int().positive().max(100000000)}).strict();
-export const app=express();
-app.disable('x-powered-by');app.use(helmet());
-const origins=(process.env.CORS_ORIGIN||'http://localhost:5173').split(',').map(s=>s.trim());
-app.use(cors({origin(orig,cb){if(!orig||origins.includes(orig)) return cb(null,true);return cb(new Error('Origen CORS no permitido'));}}));
-app.use(express.json({limit:'16kb'}));
-app.get('/health',(_req,res)=>res.json({status:'ok',service:'moneycloud-api'}));
-app.get('/api/v1/transactions',async (_req,res,next)=>{try{res.json({data:await listTransactions()});}catch(e){next(e);}});
-app.post('/api/v1/transactions',async(req,res,next)=>{try{const parsed=schema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:'Datos inválidos',details:parsed.error.flatten()});res.status(201).json({data:await createTransaction(parsed.data)});}catch(e){next(e);}});
-app.delete('/api/v1/transactions/:id',async(req,res,next)=>{try{const deleted=await deleteTransaction(req.params.id);if(!deleted)return res.status(404).json({error:'Movimiento no encontrado'});res.status(204).end();}catch(e){next(e);}});
-app.get('/api/v1/summary',async(_req,res,next)=>{try{const tx=await listTransactions();const incomeCents=tx.filter(x=>x.type==='income').reduce((s,x)=>s+x.amountCents,0);const expenseCents=tx.filter(x=>x.type==='expense').reduce((s,x)=>s+x.amountCents,0);res.json({data:{incomeCents,expenseCents,balanceCents:incomeCents-expenseCents,count:tx.length}});}catch(e){next(e);}});
-app.use((err,_req,res,_next)=>{console.error('API error:',err.message);res.status(err.message==='Origen CORS no permitido'?403:500).json({error:'No fue posible completar la operación'});});
+const transactionSchema = z.object({
+  type: z.enum(['income', 'expense']),
+  description: z.string().trim().min(2).max(100),
+  category: z.string().trim().min(2).max(40),
+  amountCents: z.number().int().positive().max(100000000),
+}).strict();
+
+export const app = express();
+app.disable('x-powered-by');
+app.use(helmet());
+
+const origins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim());
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || origins.includes(origin)) return callback(null, true);
+    return callback(new Error('Origen CORS no permitido'));
+  },
+}));
+app.use(express.json({ limit: '16kb' }));
+
+app.get('/health', (_request, response) => {
+  response.json({ status: 'ok', service: 'moneycloud-api' });
+});
+
+app.get('/api/v1/transactions', async (_request, response, next) => {
+  try {
+    response.json({ data: await listTransactions() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/v1/transactions', async (request, response, next) => {
+  try {
+    const parsed = transactionSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return response.status(400).json({
+        error: 'Datos inválidos',
+        details: parsed.error.flatten(),
+      });
+    }
+    return response.status(201).json({ data: await createTransaction(parsed.data) });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.delete('/api/v1/transactions/:id', async (request, response, next) => {
+  try {
+    const deleted = await deleteTransaction(request.params.id);
+    if (!deleted) return response.status(404).json({ error: 'Movimiento no encontrado' });
+    return response.status(204).end();
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.get('/api/v1/summary', async (_request, response, next) => {
+  try {
+    const transactions = await listTransactions();
+    const incomeCents = transactions
+      .filter((item) => item.type === 'income')
+      .reduce((total, item) => total + item.amountCents, 0);
+    const expenseCents = transactions
+      .filter((item) => item.type === 'expense')
+      .reduce((total, item) => total + item.amountCents, 0);
+
+    response.json({
+      data: {
+        incomeCents,
+        expenseCents,
+        balanceCents: incomeCents - expenseCents,
+        count: transactions.length,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.use((error, _request, response, _next) => {
+  console.error('API error:', error.message);
+  const status = error.message === 'Origen CORS no permitido' ? 403 : 500;
+  response.status(status).json({ error: 'No fue posible completar la operación' });
+});
 ```
 
 ### Archivo: `apps/api/src/server.js`
@@ -171,8 +520,11 @@ Crea el archivo exactamente en esa ruta y pega **todo** el siguiente contenido:
 ```javascript
 import 'dotenv/config';
 import { app } from './app.js';
-const port=Number(process.env.PORT||3001);
-app.listen(port,'0.0.0.0',()=>console.log(`MoneyCloud API en puerto ${port}`));
+
+const port = Number(process.env.PORT || 3001);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`MoneyCloud API en puerto ${port}`);
+});
 ```
 
 ### Archivo: `apps/api/.env.example`
@@ -187,6 +539,29 @@ CORS_ORIGIN=http://localhost:5173
 # FIREBASE_PROJECT_ID=tu-proyecto
 # FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
 ```
+
+### Archivo: `.gitignore`
+
+Crea el archivo en la raíz del proyecto y pega:
+
+```gitignore
+node_modules/
+**/node_modules/
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+dist/
+**/dist/
+coverage/
+.DS_Store
+*.log
+firebase-service-account*.json
+```
+
+**Verificación:** `git status --ignored` debe mostrar los `.env` y `node_modules` como ignorados.
 
 ## Paso 3. Crear `.env` locales
 
@@ -214,7 +589,7 @@ Revisa `apps/api/.env` y deja `STORAGE_DRIVER=memory` para esta sesión.
 
 **Windows, PowerShell B:** `npm.cmd run dev:web`
 
-Abre `http://localhost:5173`; comprueba `http://localhost:3000/health` (o el puerto de `apps/api/.env`).
+Abre `http://localhost:5173`; comprueba `http://localhost:3001/health` (o el puerto de `apps/api/.env`).
 
 ## Paso 5. Prueba funcional
 
